@@ -14,4 +14,92 @@
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="amqp_fun.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="database_fun.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="main.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="parson.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="scheme.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="serial_port_new1.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="sys.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\smart_counter_6_finall_v1\finall_v1\lib\librabbitmq\utils.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="amqp_fun.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="database_fun.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="global.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="parson.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="scheme.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="serial_port.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="sys.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\smart_counter_6_finall_v1\finall_v1\lib\librabbitmq\amqp.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\smart_counter_6_finall_v1\finall_v1\lib\librabbitmq\amqp_framing.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\smart_counter_6_finall_v1\finall_v1\lib\librabbitmq\amqp_hostcheck.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\smart_counter_6_finall_v1\finall_v1\lib\librabbitmq\amqp_openssl_bio.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\smart_counter_6_finall_v1\finall_v1\lib\librabbitmq\amqp_openssl_hostname_validation.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\smart_counter_6_finall_v1\finall_v1\lib\librabbitmq\amqp_private.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\smart_counter_6_finall_v1\finall_v1\lib\librabbitmq\amqp_socket.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\smart_counter_6_finall_v1\finall_v1\lib\librabbitmq\amqp_ssl_socket.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\smart_counter_6_finall_v1\finall_v1\lib\librabbitmq\amqp_table.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\smart_counter_6_finall_v1\finall_v1\lib\librabbitmq\amqp_tcp_socket.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\smart_counter_6_finall_v1\finall_v1\lib\librabbitmq\amqp_time.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\smart_counter_6_finall_v1\finall_v1\lib\librabbitmq\config.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\smart_counter_6_finall_v1\finall_v1\lib\librabbitmq\utils.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+  </ItemGroup>
 </Project>

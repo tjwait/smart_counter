@@ -75,6 +75,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>C:\mysql-5.7.17-winx64\include;D:\Microsoft Visual Studio\vs2017Projects\smart_counter_6_finall_v1\finall_v1\lib\librabbitmq;D:\Microsoft Visual Studio\vs2017Projects\smart_counter_6_finall_v1\finall_v1\lib\librabbitmq\win32\msinttypes;$(IncludePath)</IncludePath>
+    <LibraryPath>D:\Microsoft Visual Studio\vs2017Projects\smart_counter_6_finall_v1\finall_v1\lib\librabbitmq;C:\mysql-5.7.17-winx64\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -139,6 +141,36 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\smart_counter_6_finall_v1\finall_v1\lib\librabbitmq\utils.c" />
+    <ClCompile Include="amqp_fun.c" />
+    <ClCompile Include="database_fun.c" />
+    <ClCompile Include="main.c" />
+    <ClCompile Include="parson.c" />
+    <ClCompile Include="scheme.c" />
+    <ClCompile Include="serial_port_new1.c" />
+    <ClCompile Include="sys.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\smart_counter_6_finall_v1\finall_v1\lib\librabbitmq\amqp.h" />
+    <ClInclude Include="..\..\smart_counter_6_finall_v1\finall_v1\lib\librabbitmq\amqp_framing.h" />
+    <ClInclude Include="..\..\smart_counter_6_finall_v1\finall_v1\lib\librabbitmq\amqp_hostcheck.h" />
+    <ClInclude Include="..\..\smart_counter_6_finall_v1\finall_v1\lib\librabbitmq\amqp_openssl_bio.h" />
+    <ClInclude Include="..\..\smart_counter_6_finall_v1\finall_v1\lib\librabbitmq\amqp_openssl_hostname_validation.h" />
+    <ClInclude Include="..\..\smart_counter_6_finall_v1\finall_v1\lib\librabbitmq\amqp_private.h" />
+    <ClInclude Include="..\..\smart_counter_6_finall_v1\finall_v1\lib\librabbitmq\amqp_socket.h" />
+    <ClInclude Include="..\..\smart_counter_6_finall_v1\finall_v1\lib\librabbitmq\amqp_ssl_socket.h" />
+    <ClInclude Include="..\..\smart_counter_6_finall_v1\finall_v1\lib\librabbitmq\amqp_table.h" />
+    <ClInclude Include="..\..\smart_counter_6_finall_v1\finall_v1\lib\librabbitmq\amqp_tcp_socket.h" />
+    <ClInclude Include="..\..\smart_counter_6_finall_v1\finall_v1\lib\librabbitmq\amqp_time.h" />
+    <ClInclude Include="..\..\smart_counter_6_finall_v1\finall_v1\lib\librabbitmq\config.h" />
+    <ClInclude Include="..\..\smart_counter_6_finall_v1\finall_v1\lib\librabbitmq\utils.h" />
+    <ClInclude Include="amqp_fun.h" />
+    <ClInclude Include="database_fun.h" />
+    <ClInclude Include="global.h" />
+    <ClInclude Include="parson.h" />
+    <ClInclude Include="scheme.h" />
+    <ClInclude Include="serial_port.h" />
+    <ClInclude Include="sys.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
