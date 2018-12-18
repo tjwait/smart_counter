@@ -564,7 +564,7 @@ int Locker_Open_Closed()
 	{
 		Locker_Get_Stat();
 		Sleep(2000);
-	} while (counter->locker_stat != 2 && ((wait_time++) < 30));
+	} while (counter->locker_stat != 2 && ((wait_time++) < 15));
 
 	//while (counter->locker_stat != 2 && ((wait_time ++) < 30))//在门没有关闭之前都会循环,此处要根据业务需要增加超时报警推出此循环的功能
 	//{
