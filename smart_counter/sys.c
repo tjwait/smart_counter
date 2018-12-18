@@ -2592,7 +2592,8 @@ int Board_Get_Weight_Ex(char * board_id)
 *	功能：执行一次销售流程
 *	参数：[out]执行结果
 *	说明：服务器发送柜子的全部称重板编号和称重板上的货物重量
-*
+*		  *对于超时关门的处理方案，若等待若干时间后门仍旧没有关上，程序返回门没有关闭的信息，此时用户手机上应该显式出现关门按钮，用户关门后应该主动点击关门按钮
+*		  *服务器收到用户发送的信息后去确认柜子的门的状态，如果确实为关闭则执行称重流程，如果仍旧有问题，则向用户发送异常信息
 */
 char *  Procedure_Sales_Ex(JSON_Object * json_object)
 {
@@ -2607,53 +2608,10 @@ char *  Procedure_Sales_Ex(JSON_Object * json_object)
 	int res = 0;
 	if (sub_array_parse != NULL)
 	{
-		////先对每一个称重板进行cur校准，规定所有的销售流程都是默认要根据温度情况判定是否需要校准的，而且每一个销售流程，上位机应该将所有的称重板及其板上货物重量发过来
-		//if (!sys_tem.IsCheck)
-		//{
-		//	//温度没有变化无需校准
-		//	printf("最后一次测量温度为 %d 摄氏度 ， 系统初始温度为 %d 摄氏度，无需校准\r\n", sys_tem.Tem_Cur, sys_tem.Tem);
-		//}
-		//else
-		//{
-		//	//温度变化及时间满足校准要求，先将温度结构体数据进行调整
-		//	sys_tem.Tem = sys_tem.Tem_Cur;
-		//	sys_tem.Time = 0;
-		//	sys_tem.IsCheck = 0;
-
-		//	for (int i = 0; i < json_array_get_count(sub_array_parse); i++)
-		//	{
-		//		//解析第i个子数组信息
-		//		sub_sub_array_parse = json_array_get_array(sub_array_parse, i);
-		//		//data域中每一个元素都为数组，子数组中有两个元素，分别为称重板编号，和该称重板上货物重量
-		//		while (p != NULL)
-		//		{
-
-		//			if (strcmp(p->id, json_array_get_string(sub_sub_array_parse, 0)) == 0)
-		//			{
-		//				res = Board_Curavture_Value_Set_Ex(json_array_get_string(sub_sub_array_parse, 0), (UINT16)CharNum_To_Double(json_array_get_string(sub_sub_array_parse, 1)),2, 1/*保留校准结果*/);//在称重中调用曲率校准函数，校准次数为2，并且保留校准结果
-
-		//				if (res != GEN_OK && res != SETTING_CURAVTURE_VALUE_TOO_LIGHT)
-		//				{
-		//					//若代码到达此处，则代表校准出现了严重错误，销售流程无法再正常执行
-		//					return Procedure_Answer_Message("Shopping", SHOPPING_SETTING_CURAVTURE_VALUE_ERROR, NULL);
-		//				}
-		//				p = board_info;
-		//				break;//跳出while循环，并且将p指针重新指向board_info链表头
-		//			}
-		//			p = p->next;
-		//		}
-		//		if (p == NULL)//即代表某一个称重板编号错误，即未找到匹配的编号
-		//		{
-		//			return Procedure_Answer_Message("Shopping", SETTING_CURAVTURE_VALUE_BOARD_ERROR, NULL);//此返回值编码是有问题的，暂不处理
-		//		}
-
-		//	}
-
-		//}
 		
 		Sleep(200);
-		//开门，最多等待3分钟
-		for (int i = 0; i < 3; i++)
+		//开门，最多等待2分钟
+		for (int i = 0; i < 2; i++)
 		{
 			//开门，若长时间不关闭，此函数会阻塞1分钟
 			res = Locker_Open_Closed();
@@ -2661,6 +2619,11 @@ char *  Procedure_Sales_Ex(JSON_Object * json_object)
 			{
 				break;
 			}
+		}
+		if (res != LOCKER_GET_STATE_OK)
+		{
+			//门长时间未关闭
+			return Procedure_Answer_Message("Shopping", res, NULL);//直接返回执行开关门后的返回值
 		}
 		//开始称重
 		Sleep(200);
