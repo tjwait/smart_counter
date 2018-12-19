@@ -434,11 +434,11 @@ void Counter_Get_Tem()
 void Counter_Get_Tem_Ex()
 {
 
-	printf("开始周期检测温度，周期为 %d 毫秒\r\n", sys_tem.delay);
+	printf("\r\n开始周期检测温度，周期为 %d 毫秒\r\n", sys_tem.delay);
 	while (1)
 	{
 		Sleep(sys_tem.delay);
-		printf("获取温度\r\n");
+		printf("\r\n获取温度\r\n");
 		char send_buf[6];
 		send_buf[0] = '@';
 		send_buf[1] = 0xFF;//这个值是地址位高

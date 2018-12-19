@@ -18,15 +18,17 @@ int main()
 	_beginthread(Parse_Usart_Data_Run, 0, NULL);
 	Board_Ready();
 	Locker_Get_Stat();
-	//初始化柜子网络内容
-	init_amqp();
-	_beginthread(run_listen, 0, NULL);
 	Sleep(200);
 	Init_Tem();
 	_beginthread(Counter_Get_Tem_Ex, 0, NULL);
-
+	//初始化柜子网络内容
+	init_amqp();
+	//_beginthread(run_listen, 0, NULL);
 	while (1)
 	{
+		run_listen("dummy");
+		Destory_connection(conn , atoi(counter->channel));
+		Sleep(5000);
 		Sleep(5000);
 	}
 	getchar();

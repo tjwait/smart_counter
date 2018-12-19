@@ -17,7 +17,9 @@
 #define AMQP_FUN_SUCCESS 0
 #define AMQP_FUN_FAILURE -1
 
+extern amqp_connection_state_t conn;
+
 int init_amqp();
 int run_listen(void * dummy);
-
+void Destory_connection(amqp_connection_state_t conn, amqp_channel_t channel);
 

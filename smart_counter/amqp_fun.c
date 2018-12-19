@@ -27,6 +27,7 @@ int run_listen(void * dummy)
 	//amqp_socket_t *socket = NULL;
 	//amqp_connection_state_t conn;
 	int status;
+	amqp_frame_t frame;//這個變量好像是每次接收到有錯誤的數據幀
 	conn = amqp_new_connection();//此处是建立一个amqp连接的结构体并初始化该结构，该结构体需要使用amqp_destroy_connection()进行资源释放
 								 //函数返回一个amqp_connection_state_t 指针则代表成功，若返回null或者是0则代表失败
 
@@ -39,13 +40,18 @@ int run_listen(void * dummy)
 											//即这个函数的返回值其实已经被conn变量内的conn->socket这个指针所指向了
 	if (!amqp_socket)//
 	{
-		die("creating TCP socket");
+		//若为错误，则此处amqp_socket指针为null，因此不用释放任何资源，但需要退出此线程
+		//die("creating TCP socket");
+		printf("creating MQ Server TCP socket error , Retry in senonds\r\n");
+		return AMQP_FUN_FAILURE;
 	}
 
 	status = amqp_socket_open(amqp_socket, counter->server_ip , atoi(counter->server_port));//打开tcp连接函数，其内部实际上调用了klass指针指向的结构体重的open函数来实现的
 	if (status) 
 	{
-		die("opening TCP socket");
+		//释放socket资源
+		printf("\r\nConnection MQ Server error  , Retry in senonds\r\n");
+		return AMQP_FUN_FAILURE;
 	}
 
 	//登录，amqp_login参数为  
@@ -57,7 +63,7 @@ int run_listen(void * dummy)
 	//6、登录服务器的认知机制，SASL为c/s的一种认证机制，并非amqp所特有的，在此处提供两种认证机制
 	//		*AMQP_SASL_METHOD_PLAIN 利用此种方式，在该参数后面要提供用户名和密码两个参数，例如如下面使用的方式
 	//		*AMQP_SASL_METHOD_EXTERNAL 利用此种方式，在改参数后要提供一个认证字符串，这个如何使用还需要再了解,不知道是否为不需要密码的用户米（新建用的时候，是否需要密码是可选项）
-	die_on_amqp_error(amqp_login(conn, "/", 0, 131072, 360 , AMQP_SASL_METHOD_PLAIN, counter->mq_name, counter->mq_pw), "Logging in");
+	die_on_amqp_error(amqp_login(conn, "/", 0, 131072, 60 , AMQP_SASL_METHOD_PLAIN, counter->mq_name, counter->mq_pw), "Logging in");
 
 	amqp_channel_open(conn, atoi(counter->channel));
 	/*
@@ -139,27 +145,106 @@ int run_listen(void * dummy)
 			if (AMQP_RESPONSE_NORMAL != res.reply_type) //以下几行代码的正确性还需要测试，若触发if条件后代表有异常，在持续等待信息不知道是否正确
 				                                        //也许重复执行该函数也是正确的处理方式
 			{
-				//接收到了异常信息？？
-				//amqp_destroy_envelope(&envelope);//不知道在此处执行此句是否会有问题，需要测试###
-				//continue;
-				break;
+				//目前测试如果连接之后断网，代码会执行到此处
+				//res.reply_type的值位于amqp_response_type_enum_枚举中
+				//res.library_error的返回值是位于amqp_status_enum_这个枚举中
+				if (AMQP_RESPONSE_LIBRARY_EXCEPTION == res.reply_type && AMQP_STATUS_UNEXPECTED_STATE == res.library_error)
+				{
+					if (AMQP_STATUS_OK != amqp_simple_wait_frame(conn, &frame)) 
+					{	
+						//這部分語句的執行見amqp_consume_message函數要求
+						return AMQP_FUN_FAILURE;
+					}
+					/*
+					* 以下語句為分析接收到的異常消息是什麼并根據不同的內容進行處理
+					*/
+					if (AMQP_FRAME_METHOD == frame.frame_type) {
+						switch (frame.payload.method.id) {
+						case AMQP_BASIC_ACK_METHOD://接收ACK返回的地方
+							/* if we've turned publisher confirms on, and we've published a
+							* message here is a message being confirmed.
+							*/
+							printf("AMQP_BASIC_ACK_METHOD");
+							break;
+						case AMQP_BASIC_RETURN_METHOD://如果消息发送路由失败
+							/* if a published message couldn't be routed and the mandatory
+							* flag was set this is what would be returned. The message then
+							* needs to be read.
+							*/
+						{
+							amqp_message_t message;
+							res = amqp_read_message(conn, frame.channel, &message, 0);
+							if (AMQP_RESPONSE_NORMAL != res.reply_type) {
+								return AMQP_FUN_FAILURE;
+							}
+							printf("AMQP_BASIC_RETURN_METHOD");
+							amqp_destroy_message(&message);
+						}
+
+						break;
+
+						case AMQP_CHANNEL_CLOSE_METHOD://向不存在的exchange发送数据的时候会触发此错误
+							/* a channel.close method happens when a channel exception occurs,
+							* this can happen by publishing to an exchange that doesn't exist
+							* for example.
+							*
+							* In this case you would need to open another channel redeclare
+							* any queues that were declared auto-delete, and restart any
+							* consumers that were attached to the previous channel.
+							*/
+							printf("AMQP_CHANNEL_CLOSE_METHOD");
+							return AMQP_FUN_FAILURE;
+
+						case AMQP_CONNECTION_CLOSE_METHOD:
+							/* a connection.close method happens when a connection exception
+							* occurs, this can happen by trying to use a channel that isn't
+							* open for example.
+							*
+							* In this case the whole connection must be restarted.
+							*/
+							printf("AMQP_CONNECTION_CLOSE_METHOD");
+							return AMQP_FUN_FAILURE;
+
+						default:
+							fprintf(stderr, "An unexpected method was received %u\n",
+								frame.payload.method.id);
+							return AMQP_FUN_FAILURE;
+						}
+					}
+				}
+				else if (1)//目前的策略是如果第一个if条件错误，就直接进入此if语句内
+				{
+					//经测试如果断网amqp_consume_message这个函数会从阻塞式跳出，然后会进入此处代码
+					return AMQP_FUN_FAILURE;
+				}
+
 			}
-
-
-			//解析接收到的数据，注意目前测试的情况是消费者必须要执行完所有处理内容才会再次接受服务器传输过来的数据，因此不会出现当该线程
-			//正在处理一个命令的时候又接收到了另外的一个命令的情况，因此counter结构体中的isbusy值在此处并未使用
-			json_parse_fun(envelope.message.body.bytes);
-			amqp_destroy_envelope(&envelope);
+			
+			else//如果接受到的数据正常
+			{
+				//解析接收到的数据，注意目前测试的情况是消费者必须要执行完所有处理内容才会再次接受服务器传输过来的数据，因此不会出现当该线程
+				//正在处理一个命令的时候又接收到了另外的一个命令的情况，因此counter结构体中的isbusy值在此处并未使用
+				json_parse_fun(envelope.message.body.bytes);
+				amqp_destroy_envelope(&envelope);
+			}
+			
 		}
 	}
-
-	die_on_amqp_error(amqp_channel_close(conn, 1, AMQP_REPLY_SUCCESS),
-		"Closing channel");
-	die_on_amqp_error(amqp_connection_close(conn, AMQP_REPLY_SUCCESS),
-		"Closing connection");
-	die_on_error(amqp_destroy_connection(conn), "Ending connection");
-
+	//程序应该不会达到此处
 	return AMQP_FUN_SUCCESS;
+}
+
+//关闭mq连接
+void Destory_connection(amqp_connection_state_t conn, amqp_channel_t channel)
+{
+	//amqp_rpc_reply_t res;
+	//die_on_amqp_error(amqp_channel_close(conn, channel, AMQP_REPLY_SUCCESS),"Closing channel");
+	//die_on_amqp_error(amqp_connection_close(conn, AMQP_REPLY_SUCCESS),"Closing connection");
+	//die_on_error(amqp_destroy_connection(conn), "Ending connection");
+	amqp_channel_close(conn, channel, AMQP_REPLY_SUCCESS);
+	amqp_connection_close(conn, AMQP_REPLY_SUCCESS);
+	amqp_destroy_connection(conn);
+	//printf("destroy connection res is : %d", r);
 }
 
 //传入envelope.message.body.bytes参数，这个地方未来可以更改为多线程
@@ -347,8 +432,23 @@ static int Amqp_public_message(amqp_connection_state_t state, char * exchange, c
 	props._flags = AMQP_BASIC_CONTENT_TYPE_FLAG | AMQP_BASIC_DELIVERY_MODE_FLAG;
 	props.content_type = amqp_cstring_bytes("text/plain");
 	props.delivery_mode = 2; /* persistent delivery mode */
-	die_on_error(amqp_basic_publish(conn, atoi(counter->channel), amqp_cstring_bytes(exchange),\
-		         amqp_cstring_bytes(routingkey), 0, 0,&props, amqp_cstring_bytes(message)), "Publishing");
-
-	return AMQP_FUN_SUCCESS;
+	/*
+	*	amqp_basic_publish函数的返回值为以下几项：以下几个值都是负值
+	*	- AMQP_STATUS_CONNECTION_CLOSED: the connection was closed.
+	*	- AMQP_STATUS_SSL_ERROR: a SSL error occurred.
+	*   - AMQP_STATUS_TCP_ERROR: a TCP error occurred. errno or
+	*   WSAGetLastError() may provide more information
+	*/
+	int res = amqp_basic_publish(conn, atoi(counter->channel), amqp_cstring_bytes(exchange), \
+		amqp_cstring_bytes(routingkey), 0, 0, &props, amqp_cstring_bytes(message));
+	die_on_error_ex( res , "Publishing");
+	if (res == AMQP_STATUS_OK)
+	{
+		return AMQP_FUN_SUCCESS;
+	}
+	else
+	{
+		return res;
+	}
+	
 }
