@@ -290,8 +290,19 @@ static int json_parse_fun(char * amqp_message)
 			char * devid_buf = json_object_get_string(json_object_buf, "devid");
 			if (devid_buf != NULL && (strcmp(counter->sn, devid_buf) == 0) || (strcmp(" broadcast", devid_buf) == 0))
 			{
-				
-				Check_Cmd(json_object_buf);
+				//先判断这个接收到的数据的sn串号是否已经是处理过的，如果是就将处理过的数据重新发送一遍
+				char * message_buf = Get_up_message_message("up_message", "msn", json_object_get_string(json_object_buf, "MSN"));
+				if (message_buf == NULL)
+				{
+					printf("\r\n收到了一条新的命令开始处理\r\n");
+					Check_Cmd(json_object_buf);
+				}
+				else
+				{
+					printf("\r\n收到了一条MSN重复的命令，将保存的上行数据重新上传\r\n");
+					Amqp_public_message(conn, "amq.direct", "server", message_buf);
+					free(message_buf);//显式释放
+				}
 			}
 
 		}

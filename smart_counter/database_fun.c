@@ -829,6 +829,53 @@ INT64 SQL_SELECT(char * tablename, char * condition_name, char * condition_value
 
 }
 
+/*
+*	功能：从up_message表中获取某一个记录的message数据
+*	参数：
+*	说明：返回值为查找到的message数据指针，该数据需要接受者显式释放资源
+*/
+char * Get_up_message_message(char * tablename, char * condition_name, char * condition_value)
+{
+	unsigned char change_code_buf[200] = { 0 };
+	char  query_sql[1024] = "select * from ";
+	strcat(query_sql, tablename);
+	strcat(query_sql, " where ");
+	strcat(query_sql, condition_name);
+	strcat(query_sql, " = '");
+	UTF8ToGBK(condition_value, change_code_buf, 200);
+	strcat(query_sql, change_code_buf);
+	strcat(query_sql, "'");
+
+	if (mysql_query(mysql, query_sql))
+	{
+		finish_with_error(mysql);
+	}
+	MYSQL_RES * result;//保存结果的指针
+	result = mysql_store_result(mysql);//获取语句执行结果
+
+	INT64 num_row = 0;
+	if (result != NULL)
+	{
+		num_row = mysql_num_rows(result);//获取行数，正常情况下应该只有1行
+		if (num_row == 0)
+		{
+			return NULL;
+		}
+		MYSQL_ROW row = mysql_fetch_row(result);//不论查询到了多少行记录，只将第一个记录返回
+		char * message_buf = (char *)malloc(sizeof(char) * 200);
+		memset(message_buf, 0, sizeof(char) * 200);
+		strcpy(message_buf, row[2]);//获取message数据
+		mysql_free_result(result);//释放结果资源
+
+		return message_buf;
+	}
+	else
+	{
+		return NULL;
+	}
+
+}
+
 
 /*
 *	功能: 执行一条服务器传送过来的sql select 语句

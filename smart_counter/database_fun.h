@@ -129,8 +129,10 @@ extern "C" {
 	INT64 SQL_INSERT_INTO_Scheme(struct scheme * scheme_p);
 	INT64 SQL_DELETE(char * tablename, char * condition_name, char * condition_value);
 
+	//向上行数据流水表中插入新的数据
 	INT64 SQL_INSERT_INTO_Up_Message(char * msn, char * message, time_t timep);
-
+	//获取上行数据流水表中的某一个记录的message数据
+	char * Get_up_message_message(char * tablename, char * condition_name, char * condition_value);
 
 	char * Procedure_SQL_Select(JSON_Object * json_object);
 	char * Procedure_SQL_Updata(JSON_Object * json_object);
