@@ -2181,13 +2181,14 @@ static int num_bytes_in_utf8_sequence(unsigned char c) {
 
 /*
 *	功能：形成向服务器发送的应答的消息
-*	参数：	[in] 命令名称，即编号
+*	参数：	[in] 接收到的消息串号（可以用时间戳等实现）
+			[in] 命令名称，即编号
 			[in] 命令执行的结果
 			[in] 要返回的数据子数组，该值应该是一个已经填充好的数组，每一个元素都为数组，即[ [] , [] , [] , [] , [] , [] ]
 			[out]将消息返回给调用函数，其中json数据要由调用函数显示释放
 *	说明：
 */
-char *  Procedure_Answer_Message(char * cmd_name , int Res , JSON_Value *sub_value)
+char *  Procedure_Answer_Message(char * message_sn , char * cmd_name , int Res , JSON_Value *sub_value)
 {
 	JSON_Value *root_value = json_value_init_object();//初始化了一个value，其类型为object，value为json数据的一个类型，不同的value类型可以嵌套
 	JSON_Object *root_object = json_value_get_object(root_value);//获取value中的object的地址
@@ -2197,6 +2198,7 @@ char *  Procedure_Answer_Message(char * cmd_name , int Res , JSON_Value *sub_val
 
 	time_t timep;
 	time(&timep);
+	json_object_set_string(root_object, "MSN", message_sn);
 	json_object_set_string(root_object, "devid", counter->sn);
 	json_object_set_string(root_object, "cmdid", cmd_name);
 	Int_To_CharArray(Res, change_code);
@@ -2217,11 +2219,11 @@ char *  Procedure_Answer_Message(char * cmd_name , int Res , JSON_Value *sub_val
 *	参数：[out]执行结果
 *	说明：执行完开锁命令后等待10秒钟，然后返回开锁函数的返回值
 */
-char *  Procedure_Open_Lock(void)
+char *  Procedure_Open_Lock(JSON_Object * json_object)
 {
 
 	int res = Locker_Open();
-	return Procedure_Answer_Message("Unlock", res, NULL);
+	return Procedure_Answer_Message(json_object_get_string(json_object, "MSN"), "Unlock", res, NULL);
 
 }
 
@@ -2230,11 +2232,11 @@ char *  Procedure_Open_Lock(void)
 *	参数：[out]直至门关或者一分钟延时到达
 *	说明：先执行开锁函数，然后等待10秒钟，再执行获取锁状态的命令，每两秒判断一次返回值是否为门关闭，如果不是则重复获取锁状态，但总时间不超过1分钟，最终将锁状态返回
 */
-char *  Procedure_Open_Close(void)
+char *  Procedure_Open_Close(JSON_Object * json_object)
 {
 
 	int res = Locker_Open_Closed();
-	return Procedure_Answer_Message("Unlock_Close", res, NULL);
+	return Procedure_Answer_Message(json_object_get_string(json_object, "MSN"), "Unlock_Close", res, NULL);
 
 }
 
@@ -2243,11 +2245,11 @@ char *  Procedure_Open_Close(void)
 *	参数：[out]获取锁的状态
 *	说明：返回锁的状态
 */
-char *  Procedure_Get_Locker_State(void)
+char *  Procedure_Get_Locker_State(JSON_Object * json_object)
 {
 
 	int res = Locker_Get_Stat();
-	return Procedure_Answer_Message("Locker_State", res, NULL);
+	return Procedure_Answer_Message(json_object_get_string(json_object, "MSN"), "Locker_State", res, NULL);
 
 }
 
@@ -2267,7 +2269,7 @@ char * Procedure_Basic_Value_Set(JSON_Object * json_object)
 		res = Board_Basic_Value_Set_By_id(board_id, 2);
 	}
 
-	return Procedure_Answer_Message("Basic_Value", res, NULL);
+	return Procedure_Answer_Message(json_object_get_string(json_object, "MSN") , "Basic_Value", res, NULL);
 
 }
 
@@ -2357,9 +2359,9 @@ char *  Procedure_Set_Curavture_Value(JSON_Object * json_object)
 			}
 			p = p->next;
 		}
-		return Procedure_Answer_Message("Curavture_Value", res, sub_value);
+		return Procedure_Answer_Message(json_object_get_string(json_object, "MSN"), "Curavture_Value", res, sub_value);
 	}
-	return Procedure_Answer_Message("Curavture_Value", res, NULL);
+	return Procedure_Answer_Message(json_object_get_string(json_object, "MSN"), "Curavture_Value", res, NULL);
 
 }
 
@@ -2487,7 +2489,7 @@ char * Procedure_Get_Board_State(void)
 		json_array_append_string(sub_array, change_code);//添加称重板是否需要校准状态
 		p = p->next;
 	}
-	return Procedure_Answer_Message("Board_State", 0, sub_value);//这个函数不可能失败，因此res固定为0
+	return Procedure_Answer_Message(json_object_get_string(json_object, "MSN") , "Board_State", 0, sub_value);//这个函数不可能失败，因此res固定为0
 
 }
 
@@ -2522,7 +2524,7 @@ char *  Procedure_Get_Weight_Value(JSON_Object * json_object)
 			res = Board_Get_Weight_Ex(json_array_get_string(sub_array_parse, i));
 			if (res != 0)//如果测量没有成功
 			{
-				return Procedure_Answer_Message("Weight_Value", res, sub_value);
+				return Procedure_Answer_Message(json_object_get_string(json_object, "MSN"), "Weight_Value", res, sub_value);
 			}
 			json_array_append_string(sub_array, json_array_get_string(sub_array_parse, i));//添加称重板编号
 			while (p != NULL)
@@ -2540,12 +2542,12 @@ char *  Procedure_Get_Weight_Value(JSON_Object * json_object)
 
 
 		}
-		return Procedure_Answer_Message("Weight_Value", res, sub_value);
+		return Procedure_Answer_Message(json_object_get_string(json_object, "MSN"), "Weight_Value", res, sub_value);
 	}
 	else//如果上传的data域为空，则代表没有上传任何称重板编号和校准值，因此返回错误
 	{
 		res = WEIGHT_VALUE_DATA_MISS;
-		return Procedure_Answer_Message("Weight_Value", res, sub_value);
+		return Procedure_Answer_Message(json_object_get_string(json_object, "MSN"), "Weight_Value", res, sub_value);
 	}
 
 }
@@ -2624,7 +2626,7 @@ char *  Procedure_Sales_Ex(JSON_Object * json_object)
 		if (res != LOCKER_GET_STATE_OK)
 		{
 			//门长时间未关闭
-			return Procedure_Answer_Message("Shopping", res, NULL);//直接返回执行开关门后的返回值
+			return Procedure_Answer_Message(json_object_get_string(json_object, "MSN"), "Shopping", res, NULL);//直接返回执行开关门后的返回值
 		}
 		//开始称重
 		Sleep(200);
@@ -2637,7 +2639,7 @@ char *  Procedure_Sales_Ex(JSON_Object * json_object)
 			res = Board_Get_Weight_Ex(json_array_get_string(sub_array_parse, i));
 			if (res != 0)//如果测量没有成功
 			{
-				return Procedure_Answer_Message("Shopping", res, sub_value);
+				return Procedure_Answer_Message(json_object_get_string(json_object, "MSN"), "Shopping", res, sub_value);
 			}
 			json_array_append_string(sub_array, json_array_get_string(sub_array_parse, i));//添加称重板编号
 			while (p != NULL)
@@ -2654,17 +2656,17 @@ char *  Procedure_Sales_Ex(JSON_Object * json_object)
 			}
 			if (p == NULL)//即代表某一个称重板编号错误，即未找到匹配的编号
 			{
-				return Procedure_Answer_Message("Shopping", WEIGHT_VALUE_BOARD_ERROR, NULL);//代码应该永远不会达到此处
+				return Procedure_Answer_Message(json_object_get_string(json_object, "MSN"), "Shopping", WEIGHT_VALUE_BOARD_ERROR, NULL);//代码应该永远不会达到此处
 			}
 
 		}
-		return Procedure_Answer_Message("Shopping", res, sub_value);
+		return Procedure_Answer_Message(json_object_get_string(json_object, "MSN"), "Shopping", res, sub_value);
 
 	}
 	else
 	{
 		//没有提供称重板信息，无法完成销售流程
-		return Procedure_Answer_Message("Shopping", SHOPPING_WEIGHT_VALUE_DATA_MISS, NULL);
+		return Procedure_Answer_Message(json_object_get_string(json_object, "MSN"), "Shopping", SHOPPING_WEIGHT_VALUE_DATA_MISS, NULL);
 	}
 
 }

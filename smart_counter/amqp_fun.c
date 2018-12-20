@@ -349,7 +349,7 @@ static int Check_Cmd(JSON_Object * json_object)
 		else if (strcmp(cmd, "Unlock") == 0)
 		{
 			printf("执行一次开门\r\n");
-			smb.message = Procedure_Open_Lock();
+			smb.message = Procedure_Open_Lock(json_object);
 			if (smb.message != NULL)
 			{
 				smb.Isused = 1;
@@ -365,7 +365,7 @@ static int Check_Cmd(JSON_Object * json_object)
 		else if (strcmp(cmd, "Unlock_Close") == 0)
 		{
 			printf("执行一次开关门\r\n");
-			smb.message = Procedure_Open_Close();
+			smb.message = Procedure_Open_Close(json_object);
 			if (smb.message != NULL)
 			{
 				smb.Isused = 1;
@@ -381,7 +381,7 @@ static int Check_Cmd(JSON_Object * json_object)
 		else if (strcmp(cmd, "Locker_State") == 0)
 		{
 			printf("获取柜子门的状态\r\n");
-			smb.message = Procedure_Get_Locker_State();
+			smb.message = Procedure_Get_Locker_State(json_object);
 			if (smb.message != NULL)
 			{
 				smb.Isused = 1;

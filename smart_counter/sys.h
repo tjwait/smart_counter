@@ -78,9 +78,10 @@ int is_valid_utf8(const char *string, size_t string_len);
 
 
 //新系统的所使用的函数，以上部分函数也在新系统中使用
-char *  Procedure_Open_Lock(void);
-char *  Procedure_Open_Close(void);
-char *  Procedure_Get_Locker_State(void);
+char *  Procedure_Answer_Message(char * message_sn, char * cmd_name, int Res, JSON_Value *sub_value);
+char *  Procedure_Open_Lock(JSON_Object * json_object);
+char *  Procedure_Open_Close(JSON_Object * json_object);
+char *  Procedure_Get_Locker_State(JSON_Object * json_object);
 char *  Procedure_Basic_Value_Set(JSON_Object * json_object);
 char *  Procedure_Set_Curavture_Value(JSON_Object * json_object);
 char *  Procedure_Get_Board_State(void);
