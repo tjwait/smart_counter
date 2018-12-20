@@ -458,7 +458,6 @@ static int Check_Cmd(JSON_Object * json_object)
 
 			}
 		}
-
 		else if (strcmp(cmd, "SQL_Select") == 0)//执行sql select语句，经测试就算查询没有查询到结果也没问题
 		{
 			//执行传输过来的sql语句，并返回结果,结果分为两类，select类和增删改的结果
