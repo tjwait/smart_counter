@@ -5,6 +5,8 @@
 amqp_socket_t *amqp_socket = NULL;
 amqp_connection_state_t conn;
 
+struct Send_Message_Buf smb;
+
 amqp_bytes_t queuename;//queue 的名字
                        //exchange 的名字同柜子的SN编号
                        //要连接的服务器信息在counter结构体中
@@ -133,6 +135,22 @@ int run_listen(void * dummy)
 			amqp_envelope_t envelope;
 
 			amqp_maybe_release_buffers(conn);
+			//检测下是否有没有上行成功的数据
+			if (smb.Isused)
+			{
+				printf("\r\n有未发送成功的数据要重新发送\r\n");
+				if (Amqp_public_message(conn, "amq.direct", "server", smb.message) == AMQP_FUN_SUCCESS)
+				{
+					free(smb.message);
+					smb.Isused = 0;
+					printf("\r\n数据发送成功\r\n");
+				}
+				else
+				{
+					printf("数据发送失败\r\n");
+				}
+				
+			}
 
 			//這個函數的第三個參數為超時時間，如果為null則為阻塞式，最後一個參數暫不使用，直接為0即可
 			printf("\r\n");
@@ -274,17 +292,7 @@ static int json_parse_fun(char * amqp_message)
 			{
 				Check_Cmd(json_object_buf);
 			}
-			//val = json_object_get_value(json_object_buf, "devid");
-			//if (val != NULL && json_value_get_type(val) == JSONString)
-			//{
-				/*
-				*	如果发送过来的数据中，devid等于本柜子的id或者等于 broadcast 则此柜子会继续处理该条指令
-				*/
-				//if ((strcmp(counter->sn, json_value_get_string(val)) == 0)  || (strcmp(" broadcast", json_value_get_string(val)) == 0))
-				//{
-					//Check_Cmd(json_object_buf);
-				//}
-			//}
+
 		}
 		else
 		{
@@ -323,89 +331,170 @@ static int Check_Cmd(JSON_Object * json_object)
 			printf("执行一次消费\r\n");
 			//char * result_p = Procedure_Sales();
 
-			char * result_p = Procedure_Sales_Ex(json_object);
-			if (result_p != NULL)
+			//char * result_p = Procedure_Sales_Ex(json_object);
+			smb.message = Procedure_Sales_Ex(json_object);
+			if (smb.message != NULL)
 			{
-				Amqp_public_message(conn, "amq.direct", "server", result_p);
-				free(result_p);
+				smb.Isused = 1;
+				//此处的业务逻辑是认为如果发送信息的时候函数失败，在接下来的消费者等待数据的时候也会出错，届时该线程就会退出，但是否可以行还需要验证
+				if (Amqp_public_message(conn, "amq.direct", "server", smb.message) == AMQP_FUN_SUCCESS)
+				{
+					free(smb.message);
+					smb.Isused = 0;
+				}
+				
 			}
 			
 		}
 		else if (strcmp(cmd, "Unlock") == 0)
 		{
 			printf("执行一次开门\r\n");
-			char * result_p = Procedure_Open_Lock();
-			Amqp_public_message(conn, "amq.direct", "server", result_p);
-			free(result_p);
+			smb.message = Procedure_Open_Lock();
+			if (smb.message != NULL)
+			{
+				smb.Isused = 1;
+				//此处的业务逻辑是认为如果发送信息的时候函数失败，在接下来的消费者等待数据的时候也会出错，届时该线程就会退出，但是否可以行还需要验证
+				if (Amqp_public_message(conn, "amq.direct", "server", smb.message) == AMQP_FUN_SUCCESS)
+				{
+					free(smb.message);
+					smb.Isused = 0;
+				}
+
+			}
 		}
 		else if (strcmp(cmd, "Unlock_Close") == 0)
 		{
 			printf("执行一次开关门\r\n");
-			char * result_p = Procedure_Open_Close();
-			Amqp_public_message(conn, "amq.direct", "server", result_p);
-			free(result_p);
+			smb.message = Procedure_Open_Close();
+			if (smb.message != NULL)
+			{
+				smb.Isused = 1;
+				//此处的业务逻辑是认为如果发送信息的时候函数失败，在接下来的消费者等待数据的时候也会出错，届时该线程就会退出，但是否可以行还需要验证
+				if (Amqp_public_message(conn, "amq.direct", "server", smb.message) == AMQP_FUN_SUCCESS)
+				{
+					free(smb.message);
+					smb.Isused = 0;
+				}
+
+			}
 		}
 		else if (strcmp(cmd, "Locker_State") == 0)
 		{
 			printf("获取柜子门的状态\r\n");
-			char * result_p = Procedure_Get_Locker_State();
-			Amqp_public_message(conn, "amq.direct", "server", result_p);
-			free(result_p);
+			smb.message = Procedure_Get_Locker_State();
+			if (smb.message != NULL)
+			{
+				smb.Isused = 1;
+				//此处的业务逻辑是认为如果发送信息的时候函数失败，在接下来的消费者等待数据的时候也会出错，届时该线程就会退出，但是否可以行还需要验证
+				if (Amqp_public_message(conn, "amq.direct", "server", smb.message) == AMQP_FUN_SUCCESS)
+				{
+					free(smb.message);
+					smb.Isused = 0;
+				}
+
+			}
 		}
 		else if (strcmp(cmd, "Basic_Value") == 0)//指定称重板编号执行去皮
 		{
 			printf("执行一次去皮\r\n");
-			char * result_p = Procedure_Basic_Value_Set(json_object);
-			Amqp_public_message(conn, "amq.direct", "server", result_p);
-			free(result_p);
+			smb.message = Procedure_Basic_Value_Set(json_object);
+			if (smb.message != NULL)
+			{
+				smb.Isused = 1;
+				//此处的业务逻辑是认为如果发送信息的时候函数失败，在接下来的消费者等待数据的时候也会出错，届时该线程就会退出，但是否可以行还需要验证
+				if (Amqp_public_message(conn, "amq.direct", "server", smb.message) == AMQP_FUN_SUCCESS)
+				{
+					free(smb.message);
+					smb.Isused = 0;
+				}
+
+			}
 		}
 		else if (strcmp(cmd, "Curavture_Value") == 0)//指定称重板编号曲率校准
 		{
 			printf("执行一次曲率校准\r\n");
-			char * result_p = Procedure_Set_Curavture_Value(json_object);
-			Amqp_public_message(conn, "amq.direct", "server", result_p);
-			free(result_p);
+			smb.message = Procedure_Set_Curavture_Value(json_object);
+			if (smb.message != NULL)
+			{
+				smb.Isused = 1;
+				//此处的业务逻辑是认为如果发送信息的时候函数失败，在接下来的消费者等待数据的时候也会出错，届时该线程就会退出，但是否可以行还需要验证
+				if (Amqp_public_message(conn, "amq.direct", "server", smb.message) == AMQP_FUN_SUCCESS)
+				{
+					free(smb.message);
+					smb.Isused = 0;
+				}
+
+			}
 		}
 		else if (strcmp(cmd, "Weight_Value") == 0)//指定称重板编号的重量获取,可以指定多个
 		{
 			printf("执行一次称重\r\n");
-			char * result_p = Procedure_Get_Weight_Value(json_object);
-			Amqp_public_message(conn, "amq.direct", "server", result_p);
-			free(result_p);
+			smb.message = Procedure_Get_Weight_Value(json_object);
+			if (smb.message != NULL)
+			{
+				smb.Isused = 1;
+				//此处的业务逻辑是认为如果发送信息的时候函数失败，在接下来的消费者等待数据的时候也会出错，届时该线程就会退出，但是否可以行还需要验证
+				if (Amqp_public_message(conn, "amq.direct", "server", smb.message) == AMQP_FUN_SUCCESS)
+				{
+					free(smb.message);
+					smb.Isused = 0;
+				}
+
+			}
 		}
 		else if (strcmp(cmd, "Board_State") == 0)//获取称重板状态
 		{
 			printf("执行一次获取称重板状态\r\n");
-			char * result_p = Procedure_Get_Board_State();
-			Amqp_public_message(conn, "amq.direct", "server", result_p);
-			free(result_p);
+			smb.message = Procedure_Get_Board_State();
+			if (smb.message != NULL)
+			{
+				smb.Isused = 1;
+				//此处的业务逻辑是认为如果发送信息的时候函数失败，在接下来的消费者等待数据的时候也会出错，届时该线程就会退出，但是否可以行还需要验证
+				if (Amqp_public_message(conn, "amq.direct", "server", smb.message) == AMQP_FUN_SUCCESS)
+				{
+					free(smb.message);
+					smb.Isused = 0;
+				}
+
+			}
 		}
-		//else if (strcmp(cmd, "Basic_Value") == 0)//执行去皮
-		//{
-		//	printf("执行一次去皮\r\n");
-		//	char * result_p = Board_Basic_Value_Set_With_ACK();//正常的取放货
-		//	Amqp_public_message(conn, "amq.direct", "server", result_p);
-		//	free(result_p);
-		//}
+
 		else if (strcmp(cmd, "SQL_Select") == 0)//执行sql select语句，经测试就算查询没有查询到结果也没问题
 		{
 			//执行传输过来的sql语句，并返回结果,结果分为两类，select类和增删改的结果
 			//select结果是查询的数据，增删改的结果是影响的数据数量
 			printf("执行一条sql select语句\r\n");
-			char * result_p =  Procedure_SQL_Select(json_object);
-			Amqp_public_message(conn, "amq.direct", "server", result_p);
-			free(result_p);
-			//printf("cmdid is : sql\r\n");
+			smb.message =  Procedure_SQL_Select(json_object);
+			if (smb.message != NULL)
+			{
+				smb.Isused = 1;
+				//此处的业务逻辑是认为如果发送信息的时候函数失败，在接下来的消费者等待数据的时候也会出错，届时该线程就会退出，但是否可以行还需要验证
+				if (Amqp_public_message(conn, "amq.direct", "server", smb.message) == AMQP_FUN_SUCCESS)
+				{
+					free(smb.message);
+					smb.Isused = 0;
+				}
+
+			}
+
 		}
 		else if (strcmp(cmd, "SQL_Updata") == 0)//执行sql 增删改语句，此处Updata不是指sql语句updata，而是更新的意思，更新是指增删改
 		{
 
 			printf("执行一条sql 更新语句\r\n");
-			char * result_p = Procedure_SQL_Updata(json_object);
-			Amqp_public_message(conn, "amq.direct", "server", result_p);
-			free(result_p);
-			//Procedure_SQL_Select(json_object);
-			//printf("cmdid is : sql\r\n");
+			smb.message = Procedure_SQL_Updata(json_object);
+			if (smb.message != NULL)
+			{
+				smb.Isused = 1;
+				//此处的业务逻辑是认为如果发送信息的时候函数失败，在接下来的消费者等待数据的时候也会出错，届时该线程就会退出，但是否可以行还需要验证
+				if (Amqp_public_message(conn, "amq.direct", "server", smb.message) == AMQP_FUN_SUCCESS)
+				{
+					free(smb.message);
+					smb.Isused = 0;
+				}
+
+			}
+			
 		}
 		else if (strcmp(cmd, "status") == 0)//获取柜子状态
 		{
@@ -434,10 +523,18 @@ static int Amqp_public_message(amqp_connection_state_t state, char * exchange, c
 	props.delivery_mode = 2; /* persistent delivery mode */
 	/*
 	*	amqp_basic_publish函数的返回值为以下几项：以下几个值都是负值
-	*	- AMQP_STATUS_CONNECTION_CLOSED: the connection was closed.
-	*	- AMQP_STATUS_SSL_ERROR: a SSL error occurred.
-	*   - AMQP_STATUS_TCP_ERROR: a TCP error occurred. errno or
-	*   WSAGetLastError() may provide more information
+	*         - AMQP_STATUS_TIMER_FAILURE: system timer facility returned an error
+	*           the message was not sent.
+	*         - AMQP_STATUS_HEARTBEAT_TIMEOUT: connection timed out waiting for a
+	*           heartbeat from the broker. The message was not sent.
+	*         - AMQP_STATUS_NO_MEMORY: memory allocation failed. The message was
+	*           not sent.
+	*         - AMQP_STATUS_TABLE_TOO_BIG: a table in the properties was too large
+	*           to fit in a single frame. Message was not sent.
+	*         - AMQP_STATUS_CONNECTION_CLOSED: the connection was closed.
+	*         - AMQP_STATUS_SSL_ERROR: a SSL error occurred.
+	*         - AMQP_STATUS_TCP_ERROR: a TCP error occurred. errno or
+	*           WSAGetLastError() may provide more information
 	*/
 	int res = amqp_basic_publish(conn, atoi(counter->channel), amqp_cstring_bytes(exchange), \
 		amqp_cstring_bytes(routingkey), 0, 0, &props, amqp_cstring_bytes(message));

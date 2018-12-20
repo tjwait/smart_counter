@@ -2203,6 +2203,7 @@ char *  Procedure_Answer_Message(char * cmd_name , int Res , JSON_Value *sub_val
 	json_object_dotset_string(root_object, "Result.Res", change_code);
 	json_object_dotset_string(root_object, "Result.Date", ctime(&timep));
 	json_object_dotset_value(root_object, "Result.Data", sub_value);
+	//以下内存会最终通过smb.message指针指向，并且在发送成功后被释放
 	char * json_string = (char *)malloc(json_serialization_size(root_value));//json_serialization_size这个函数的返回值已经考虑了将原字符串长度进行扩展，因为还要增加一些额外的字符，如换行、反斜杠、大括号等
 	json_serialize_to_buffer(root_value, json_string, json_serialization_size(root_value));
 	//释放json资源
