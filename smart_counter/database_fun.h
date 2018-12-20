@@ -123,10 +123,14 @@ extern "C" {
 	INT64 SQL_UPDATA1(char * tablename, char * col_name1, char * col_value1, char * condition_name, char * condition_value);
 	//更新的值为数字的，注意数字也是通过字符串传输的，只是sql语句不一样
 	INT64 SQL_UPDATA2(char * tablename, char * col_name1, char * col_value1, char * condition_name, char * condition_value);
+
 	INT64 SQL_INSERT_INTO_ItemsTable(char * item_id, char * barcode, char * board_id, char * name, char * supplier, char * saletype, \
 		char * ind_count, char * ind_weight, char * ind_price, char * weight_sum, char * weight_price);
 	INT64 SQL_INSERT_INTO_Scheme(struct scheme * scheme_p);
 	INT64 SQL_DELETE(char * tablename, char * condition_name, char * condition_value);
+
+	INT64 SQL_INSERT_INTO_Up_Message(char * msn, char * message, time_t timep);
+
 
 	char * Procedure_SQL_Select(JSON_Object * json_object);
 	char * Procedure_SQL_Updata(JSON_Object * json_object);

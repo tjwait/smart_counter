@@ -2208,6 +2208,11 @@ char *  Procedure_Answer_Message(char * message_sn , char * cmd_name , int Res ,
 	//以下内存会最终通过smb.message指针指向，并且在发送成功后被释放
 	char * json_string = (char *)malloc(json_serialization_size(root_value));//json_serialization_size这个函数的返回值已经考虑了将原字符串长度进行扩展，因为还要增加一些额外的字符，如换行、反斜杠、大括号等
 	json_serialize_to_buffer(root_value, json_string, json_serialization_size(root_value));
+	
+	//添加数据库
+	
+	SQL_INSERT_INTO_Up_Message(message_sn, json_string, timep);
+
 	//释放json资源
 	json_value_free(root_value);//只需释放根资源，其内部关联的所有资源会被递归释放
 	return json_string;//改指针会随着函数跳出而失效，但指向的该内存必须在外部显式释放

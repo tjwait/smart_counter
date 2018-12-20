@@ -290,6 +290,7 @@ static int json_parse_fun(char * amqp_message)
 			char * devid_buf = json_object_get_string(json_object_buf, "devid");
 			if (devid_buf != NULL && (strcmp(counter->sn, devid_buf) == 0) || (strcmp(" broadcast", devid_buf) == 0))
 			{
+				
 				Check_Cmd(json_object_buf);
 			}
 
@@ -520,6 +521,7 @@ static int Amqp_public_message(amqp_connection_state_t state, char * exchange, c
 	props._flags = AMQP_BASIC_CONTENT_TYPE_FLAG | AMQP_BASIC_DELIVERY_MODE_FLAG;
 	props.content_type = amqp_cstring_bytes("text/plain");
 	props.delivery_mode = 2; /* persistent delivery mode */
+
 	/*
 	*	amqp_basic_publish函数的返回值为以下几项：以下几个值都是负值
 	*         - AMQP_STATUS_TIMER_FAILURE: system timer facility returned an error
@@ -536,7 +538,8 @@ static int Amqp_public_message(amqp_connection_state_t state, char * exchange, c
 	*           WSAGetLastError() may provide more information
 	*/
 	int res = amqp_basic_publish(conn, atoi(counter->channel), amqp_cstring_bytes(exchange), \
-		amqp_cstring_bytes(routingkey), 0, 0, &props, amqp_cstring_bytes(message));
+		amqp_cstring_bytes(routingkey), 1, 0, &props, amqp_cstring_bytes(message));
+	//die_on_amqp_error(amqp_get_rpc_reply(conn), "Publishing");
 	die_on_error_ex( res , "Publishing");
 	if (res == AMQP_STATUS_OK)
 	{

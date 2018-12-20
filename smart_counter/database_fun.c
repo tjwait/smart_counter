@@ -630,6 +630,40 @@ INT64 SQL_INSERT_INTO_ItemsTable(char * item_id, char * barcode, char * board_id
 }
 
 /*
+*	功能：向up_message写入流水账数据
+*	参数：
+*	说明：在向mq服务器发送数据的时候，发送之前先写入数据库，然后再发送
+*/
+INT64 SQL_INSERT_INTO_Up_Message(char * msn , char * message , time_t timep)
+{
+	unsigned char buf[200] = { 0 };
+	//mysql函数，在使用函数的位置不需要增加 '' 标号
+	snprintf(buf, 200, "FROM_UNIXTIME(%d)", timep);
+	char  query_sql[1024] = "insert into smart_sales_counter.up_message ( msn , message , date ) values ( '";
+	strcat(query_sql, msn);
+	strcat(query_sql, "' , '");
+	strcat(query_sql, message);
+	strcat(query_sql, "' , ");
+	//strcat(query_sql, "FROM_UNIXTIME(");
+	//strcat(query_sql, ctime(&timep));
+	strcat(query_sql, buf);
+	strcat(query_sql, " ) ");
+
+	if (mysql_query(mysql, query_sql))//若成功mysql_query函数返回0
+	{
+		finish_with_error(mysql);
+	}
+	
+	int res = mysql_affected_rows(mysql);
+		//if (mysql_affected_rows(mysql) <= 0)//sql执行失败或者是插入失败
+		//{
+		//	return -1;
+		//}
+	return res;
+
+}
+
+/*
 *	功能：对涉及scheme方案的三个表执行一次性插入，执行insert
 *	参数：
 *	说明：返回值为受影响的行数，如果为-1 则为sql执行失败
