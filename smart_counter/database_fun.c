@@ -77,7 +77,7 @@ int Get_Counter_Info()
 		LogWrite(ERR, "%s", "counter malloc failed ");
 		return DB_FAILURE;
 	}
-
+	memset(counter, 0, sizeof(struct counter_info));
 	char  query_sql[1024] = "select * from smart_sales_counter.counter_info";
 
 	if (mysql_query(mysql, query_sql))
@@ -178,20 +178,20 @@ int Get_Board_Info()
 	}
 
 	board_info = (struct Board_Info *)malloc(sizeof(struct Board_Info));
+	if (counter == NULL)
+	{
+		LogWrite(ERR, "%s", "board_info malloc failed ");
+		return DB_FAILURE;
+	}
 	memset(board_info, 0, sizeof(struct Board_Info));
 	struct Board_Info * board_info_rare = board_info;//临时队尾指针
-
-	//连接数据库获取信息
-	//if (NULL == mysql_real_connect(mysql, "localhost", "root", "4567324", "smart_sales_counter", 3306, NULL, 0))
-	//{
-		//finish_with_error(mysql);
-	//}
 
 	char  query_sql[1024] = "select * from smart_sales_counter.board";
 
 	if (mysql_query(mysql, query_sql))
 	{
 		finish_with_error(mysql);
+		return DB_FAILURE;
 	}
 
 	MYSQL_RES * result;//保存结果的指针
@@ -201,6 +201,7 @@ int Get_Board_Info()
 	if (NULL == result)
 	{
 		finish_with_error(mysql);
+		return DB_FAILURE;
 	}
 
 	int num_fields = mysql_num_fields(result);//获取结果的表中有多少列
