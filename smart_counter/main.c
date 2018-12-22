@@ -4,6 +4,7 @@
 #include "database_fun.h"//mysql为64位版本，因此需要在x64模式下调试
 #include "amqp_fun.h"
 #include "sys.h"
+
 //连接数据库相关全局变量
 
 //mq相关全局变量

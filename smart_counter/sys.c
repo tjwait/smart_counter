@@ -2677,6 +2677,9 @@ char *  Procedure_Sales_Ex(JSON_Object * json_object)
 }
 
 
+
+
+
 /*
 *	功能：读取称重板货物克重
 *	参数：[out]执行结果

@@ -39,6 +39,9 @@
     <ClCompile Include="..\..\smart_counter_6_finall_v1\finall_v1\lib\librabbitmq\utils.c">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="log.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="amqp_fun.h">
@@ -99,6 +102,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="..\..\smart_counter_6_finall_v1\finall_v1\lib\librabbitmq\utils.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="log.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

@@ -144,6 +144,7 @@
     <ClCompile Include="..\..\smart_counter_6_finall_v1\finall_v1\lib\librabbitmq\utils.c" />
     <ClCompile Include="amqp_fun.c" />
     <ClCompile Include="database_fun.c" />
+    <ClCompile Include="log.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="parson.c" />
     <ClCompile Include="scheme.c" />
@@ -167,6 +168,7 @@
     <ClInclude Include="amqp_fun.h" />
     <ClInclude Include="database_fun.h" />
     <ClInclude Include="global.h" />
+    <ClInclude Include="log.h" />
     <ClInclude Include="parson.h" />
     <ClInclude Include="scheme.h" />
     <ClInclude Include="serial_port.h" />
