@@ -28,6 +28,8 @@ int main()
 	LogWrite(INFO, "%s", "Check Board State Start!");
 	Board_Ready();
 
+	//获取锁的状态的目的是，在获取之后会将锁的状态保存在柜子的信息的结构体中，上位服务器可以通过接口调用获取这个状态
+	//据此可以判定柜子是否有异常问题，是否可以执行某一个业务，如门是开着的，那就不能再执行销售流程业务
 	Locker_Get_Stat();
 	Sleep(200);
 	Init_Tem();
