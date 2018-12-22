@@ -45,27 +45,36 @@ void init_serial_port(HANDLE * hCom , char * port, int baudrate)
 		0);
 	if (*hCom == INVALID_HANDLE_VALUE)
 	{ 
-		sys_die("打开COM失败!\n");
+		//sys_die("打开COM失败!\n");
+		LogWrite(ERR, "%s", "Com Open Failed!");
+		exit(-1);
 	}
 		
 	else
 	{
-		printf("COM打开成功！\n");
+		//printf("COM打开成功！\n");
+		LogWrite(INFO, "%s", "Com Open SUCCESS");
 		if (setupdcb(hCom ,baudrate) == 0)
 		{
-			printf("setup dcb 成功！\n");
+			LogWrite(INFO, "%s", "Setup DCB SUCCESS");
+			//printf("setup dcb 成功！\n");
 		}
 		else
 		{
-			sys_die("setup dcb!\n");
+			//sys_die("setup dcb!\n");
+			LogWrite(ERR, "%s", "Setup dcb Failed!");
+			exit(-1);
 		}
 		if (setuptimeout(hCom , 0, 0, 0, 0, 0) == 0)
 		{
-			printf("setup timeout 成功！\n");
+			//printf("setup timeout 成功！\n");
+			LogWrite(INFO, "%s", "Setup timeout SUCCESS");
 		}
 		else
 		{
-			sys_die("setup timeout!\n");
+			//sys_die("setup timeout!\n");
+			LogWrite(ERR, "%s", "Setup timeout Failed!");
+			exit(-1);
 		}
 		PurgeComm(* hCom , PURGE_RXCLEAR | PURGE_TXCLEAR | PURGE_RXABORT | PURGE_TXABORT); // 在读写串口之前，还要用PurgeComm()函数清空缓冲区
 																						 //PURGE_TXABORT      中断所有写操作并立即返回，即使写操作还没有完成。

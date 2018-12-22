@@ -37,8 +37,8 @@ void Init_System(void)
 		LogWrite(INFO, "%s", "Init DataBase SUCCESS!");
 	}
 	//init_db();
-	LogWrite(INFO, "%s", "Get Counter Info Start");
 
+	LogWrite(INFO, "%s", "Get Counter Info Start");
 	recon = 0;
 	while ((Get_Counter_Info() == DB_FAILURE) && (recon < 4))
 	{
@@ -54,6 +54,7 @@ void Init_System(void)
 		LogWrite(INFO, "%s", "Init Counter SUCCESS!");
 	}
 
+	LogWrite(INFO, "%s", "Get Board Info Start");
 	recon = 0;
 	while ((Get_Board_Info() == DB_FAILURE) && (recon < 4))
 	{
@@ -62,13 +63,15 @@ void Init_System(void)
 	if (recon >= 4)
 	{
 		LogWrite(ERR, "%s", "Init Board Failed!");
-		exit(-1);//获取柜子信息错误为严重错误，因此直接退出程序
+		exit(-1);//获取称重板信息错误为严重错误，因此直接退出程序
 	}
 	else
 	{
 		LogWrite(INFO, "%s", "Init Board SUCCESS!");
 	}
 
+	LogWrite(INFO, "%s", "Init Serial Start");
+	recon = 0;
 	init_serial_port( &hCom_C, counter->com_port, 9600);
 	init_serial_port(& hCom_Tem, counter->com_port_T, 9600);
 }
