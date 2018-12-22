@@ -374,6 +374,7 @@ void Board_Get_Weight()
 */
 void Init_Tem()
 {
+	char s_buf[50] = { 0 };
 	sys_tem.delay = 60000;
 	sys_tem.IsCheck = 0;
 	sys_tem.MaxTime = 5;
@@ -383,6 +384,7 @@ void Init_Tem()
 	sys_tem.Tem_Cur = 0;
 
 	printf("获取初始化温度\r\n");
+	LogWrite(INFO, "%s", "Get Init Temperature");
 	char send_buf[6];
 	send_buf[0] = '@';
 	send_buf[1] = 0xFF;//这个值是地址位高，一会再循环中要更改
@@ -394,11 +396,14 @@ void Init_Tem()
 	Sleep(2000);
 	if (Tem[4] != -100)
 	{
+		sprintf(s_buf, "Init Temperature : %d", Tem[4]);
 		printf("获取初始化温度正常  %d 摄氏度\r\n" , Tem[4]);
+		LogWrite(INFO, "%s", s_buf);
 		sys_tem.Tem_Cur = sys_tem.Tem = Tem[4];
 	}
 	else
 	{
+		LogWrite(ERR, "%s", "Get Init Temperature Error");
 		printf("获取初始化温度异常\r\n");
 	}
 
