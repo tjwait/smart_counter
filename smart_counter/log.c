@@ -115,8 +115,10 @@ static void PrintfLog(char * fromat, va_list args) {
 			break; }
 		default: {
 			if (*fromat != '%'&&*fromat != '\n')
+			{
 				fprintf(loging.logfile, "%c", *fromat);
 				printf("%c", *fromat);
+			}
 			break; }
 		}
 		fromat++;
@@ -165,6 +167,7 @@ static int initlog(unsigned char loglevel) {
 		return -1;
 	}
 	//写入日志级别，日志时间
+	printf("[%s] [%s] ", LogLevelText[loglevel - 1], loging.logtime);
 	fprintf(loging.logfile, "[%s] [%s] ", LogLevelText[loglevel - 1], loging.logtime);
 	return 0;
 }
