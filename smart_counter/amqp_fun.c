@@ -44,7 +44,8 @@ int run_listen(void * dummy)
 	{
 		//若为错误，则此处amqp_socket指针为null，因此不用释放任何资源，但需要退出此线程
 		//die("creating TCP socket");
-		printf("creating MQ Server TCP socket error , Retry in senonds\r\n");
+		//printf("creating MQ Server TCP socket error , Retry in senonds\r\n");
+		LogWrite(INFO, "%s", "creating MQ Server TCP socket error , Retry in senonds\r\n");
 		return AMQP_FUN_FAILURE;
 	}
 
@@ -52,7 +53,8 @@ int run_listen(void * dummy)
 	if (status) 
 	{
 		//释放socket资源
-		printf("\r\nConnection MQ Server error  , Retry in senonds\r\n");
+		//printf("\r\nConnection MQ Server error  , Retry in senonds\r\n");
+		LogWrite(INFO, "%s", "Connection MQ Server error  , Retry in senonds");
 		return AMQP_FUN_FAILURE;
 	}
 
@@ -65,7 +67,11 @@ int run_listen(void * dummy)
 	//6、登录服务器的认知机制，SASL为c/s的一种认证机制，并非amqp所特有的，在此处提供两种认证机制
 	//		*AMQP_SASL_METHOD_PLAIN 利用此种方式，在该参数后面要提供用户名和密码两个参数，例如如下面使用的方式
 	//		*AMQP_SASL_METHOD_EXTERNAL 利用此种方式，在改参数后要提供一个认证字符串，这个如何使用还需要再了解,不知道是否为不需要密码的用户米（新建用的时候，是否需要密码是可选项）
-	die_on_amqp_error(amqp_login(conn, "/", 0, 131072, 60 , AMQP_SASL_METHOD_PLAIN, counter->mq_name, counter->mq_pw), "Logging in");
+	//die_on_amqp_error(amqp_login(conn, "/", 0, 131072, 60 , AMQP_SASL_METHOD_PLAIN, counter->mq_name, counter->mq_pw), "Logging in");
+	if (die_on_amqp_error(amqp_login(conn, "/", 0, 131072, 60, AMQP_SASL_METHOD_PLAIN, counter->mq_name, counter->mq_pw), "Logging in") == AMQP_FUN_FAILURE)
+	{
+		return AMQP_FUN_FAILURE;
+	}
 
 	amqp_channel_open(conn, atoi(counter->channel));
 	/*

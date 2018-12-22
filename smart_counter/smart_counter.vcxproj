@@ -75,7 +75,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\mysql-5.7.17-winx64\include;D:\Microsoft Visual Studio\vs2017Projects\smart_counter_6_finall_v1\finall_v1\lib\librabbitmq;D:\Microsoft Visual Studio\vs2017Projects\smart_counter_6_finall_v1\finall_v1\lib\librabbitmq\win32\msinttypes;$(IncludePath)</IncludePath>
+    <IncludePath>D:\Microsoft Visual Studio\vs2017Projects\smart_counter\smart_counter;C:\mysql-5.7.17-winx64\include;D:\Microsoft Visual Studio\vs2017Projects\smart_counter_6_finall_v1\finall_v1\lib\librabbitmq;D:\Microsoft Visual Studio\vs2017Projects\smart_counter_6_finall_v1\finall_v1\lib\librabbitmq\win32\msinttypes;$(IncludePath)</IncludePath>
     <LibraryPath>D:\Microsoft Visual Studio\vs2017Projects\smart_counter_6_finall_v1\finall_v1\lib\librabbitmq;C:\mysql-5.7.17-winx64\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

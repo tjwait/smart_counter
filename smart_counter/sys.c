@@ -489,7 +489,7 @@ void Counter_Get_Tem()
 void Counter_Get_Tem_Ex()
 {
 	char s_buf[100] = { 0 };
-	sprintf(s_buf, "Get Temperature Periodic In %d", sys_tem.delay);
+	sprintf(s_buf, "Get Temperature Periodic In %d msec", sys_tem.delay);
 	LogWrite(INFO, "%s", s_buf);
 	//printf("\r\n开始周期检测温度，周期为 %d 毫秒\r\n", sys_tem.delay);
 	while (1)
