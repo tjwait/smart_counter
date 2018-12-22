@@ -640,13 +640,15 @@ int Locker_Open_Closed()
 int Locker_Get_Stat()
 {
 	//counter->IsBusy = 1;
+	char s_buf[100] = { 0 };
 	counter->locker_stat = -1;//赋值-1，用以判定该函数的返回值
 	Send_CMD(&hCom_C, counter->locker_id, LOCKER_CMD_STATUS, NULL, 0, 2, 0);
 	Sleep(2000);
-	printf("获取锁状态：%d \r\n" , counter->locker_stat);
+	sprintf(s_buf, "Locker State：%d  , 1-opening 2-close 3-waiting open 4-Error", counter->locker_stat);
+	LogWrite(INFO, "%s", s_buf);
+	//printf("获取锁状态：%d \r\n" , counter->locker_stat);
 	return counter->locker_stat;
 	//counter->IsBusy = -1;
-	//printf("开锁完成！\r\n");
 }
 
 /*
