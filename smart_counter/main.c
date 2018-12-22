@@ -21,8 +21,9 @@ int main()
 	_beginthread(ReceiveChar, 0, &hCom_C);
 	LogWrite(INFO, "%s", "ReceiveCharT thread Start!");
 	_beginthread(ReceiveCharT, 0, &hCom_Tem);
-
+	LogWrite(INFO, "%s", "Board Com Data Parse thread Start!");
 	_beginthread(Parse_Usart_Data_Run, 0, NULL);
+
 	Board_Ready();
 	Locker_Get_Stat();
 	Sleep(200);

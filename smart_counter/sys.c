@@ -1399,10 +1399,12 @@ void Parse_Usart_Data_Run()
 				if (srb[i].len < 6)//不管何种命令其长度都不可能小于6
 				{
 					char msg[200];
-					printf("rec len error!\r\n");
-					printf("error msg : %s ", msg);
+					LogWrite(ERR, "%s", "Baord Com Rec Message Len Error!");
+					//printf("rec len error!\r\n");
+					//printf("error msg : %s ", msg);
 					HexStringFormatForPrintf(srb[i].data, srb[i].len, msg);
-					printf("\r\n");
+					LogWrite(ERR, "%s", msg);
+					//printf("\r\n");
 					for (int j = 0; j < srb[i].len; j++)
 					{
 						srb[i].data[j] = 0x00;
@@ -1414,10 +1416,12 @@ void Parse_Usart_Data_Run()
 				if ( (srb[i].data[0] != '$' && srb[i].data[0] != '@') || srb[i].data[srb[i].len - 1] != '#' )
 				{
 					char msg[200];
-					printf("data format error!\r\n");
-					printf("error msg : %s ", msg);
+					//printf("data format error!\r\n");
+					//printf("error msg : %s ", msg);
+					LogWrite(ERR, "%s", "Baord Com Rec Message Format Error!");
 					HexStringFormatForPrintf(srb[i].data, srb[i].len, msg);
-					printf("\r\n");
+					LogWrite(ERR, "%s", msg);
+					//printf("\r\n");
 					for (int j = 0; j < srb[i].len; j++)
 					{
 						srb[i].data[j] = 0x00;
@@ -1429,10 +1433,12 @@ void Parse_Usart_Data_Run()
 				if (Sum_Check(&srb[i].data[1], srb[i].len - 3) != srb[i].data[srb[i].len - 2])
 				{
 					char msg[200];
-					printf("crc error！\r\n");
-					printf("error msg : %s ", msg);
+					//printf("crc error！\r\n");
+					//printf("error msg : %s ", msg);
+					LogWrite(ERR, "%s", "Baord Com Rec Message Crc Error!");
 					HexStringFormatForPrintf(srb[i].data, srb[i].len, msg);
-					printf("\r\n");
+					LogWrite(ERR, "%s", msg);
+					//printf("\r\n");
 					for (int j = 0; j < srb[i].len; j++)
 					{
 						srb[i].data[j] = 0x00;
@@ -1643,8 +1649,10 @@ void Parse_Usart_Data_Run()
 					{
 						//处理其他各类未识别的命令
 						char msg[200];
+						LogWrite(WARN, "%s", "Baord Com Rec Message UNKNOWN!");
 						HexStringFormatForPrintf(srb[i].data, srb[i].len, msg);
-						printf("locker other msg : %s\r\n", msg);
+						LogWrite(WARN, "%s", msg);
+						//printf("locker other msg : %s\r\n", msg);
 						for (int j = 0; j < srb[i].len; j++)
 						{
 							srb[i].data[j] = 0x00;
@@ -1663,7 +1671,6 @@ void Parse_Usart_Data_Run()
 		REC_BUF_LOCKER = LOCKER_FREE;
 		Sleep(500);
 	}
-
 
 }
 
