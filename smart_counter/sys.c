@@ -488,12 +488,15 @@ void Counter_Get_Tem()
 */
 void Counter_Get_Tem_Ex()
 {
-
+	char s_buf[100] = { 0 };
+	sprintf(s_buf, "Get Temperature Periodic In %d", sys_tem.delay);
+	LogWrite(INFO, "%s", s_buf);
 	printf("\r\n开始周期检测温度，周期为 %d 毫秒\r\n", sys_tem.delay);
 	while (1)
 	{
+		memset(s_buf, 0, sizeof(s_buf));
 		Sleep(sys_tem.delay);
-		printf("\r\n获取温度\r\n");
+		//printf("\r\n获取温度\r\n");
 		char send_buf[6];
 		send_buf[0] = '@';
 		send_buf[1] = 0xFF;//这个值是地址位高
@@ -506,6 +509,8 @@ void Counter_Get_Tem_Ex()
 		if (Tem[0] == '@' &&  Tem[4] != -100 && Tem[6] == '#')//-100是接收数据数组的默认值，如果为-100，则代表没有收到有效数据
 		{
 			sys_tem.Tem_Cur = (signed char)Tem[4];
+			sprintf(s_buf, "Get Temperature SUCCESS :%d", sys_tem.Tem_Cur);
+			LogWrite(INFO, "%s", s_buf);
 			printf("获取温度正常 %d \r\n", sys_tem.Tem_Cur);
 
 			if (sys_tem.Time == sys_tem.MaxTime)
@@ -532,6 +537,7 @@ void Counter_Get_Tem_Ex()
 		}
 		else
 		{
+			LogWrite(INFO, "%s", "Get Temperature CRC FAILURE ");
 			printf("温度传感器校验异常\r\n");
 		}
 		for (int i = 0; i < 7; i++)
