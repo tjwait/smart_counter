@@ -45,7 +45,7 @@ int run_listen(void * dummy)
 		//若为错误，则此处amqp_socket指针为null，因此不用释放任何资源，但需要退出此线程
 		//die("creating TCP socket");
 		//printf("creating MQ Server TCP socket error , Retry in senonds\r\n");
-		LogWrite(INFO, "%s", "creating MQ Server TCP socket error , Retry in senonds\r\n");
+		LogWrite(INFO, "%s", "creating MQ Server TCP socket error , Retry in senonds");
 		return AMQP_FUN_FAILURE;
 	}
 
@@ -70,6 +70,7 @@ int run_listen(void * dummy)
 	//die_on_amqp_error(amqp_login(conn, "/", 0, 131072, 60 , AMQP_SASL_METHOD_PLAIN, counter->mq_name, counter->mq_pw), "Logging in");
 	if (die_on_amqp_error(amqp_login(conn, "/", 0, 131072, 60, AMQP_SASL_METHOD_PLAIN, counter->mq_name, counter->mq_pw), "Logging in") == AMQP_FUN_FAILURE)
 	{
+		LogWrite(INFO, "%s", "Retry in senonds");
 		return AMQP_FUN_FAILURE;
 	}
 
@@ -82,7 +83,11 @@ int run_listen(void * dummy)
 	*		*reply_type为主体值，若为1即AMQP_RESPONSE_NORMAL，则代表刚刚执行的api正常，若为AMQP_RESPONSE_SERVER_EXCEPTION或者AMQP_RESPONSE_LIBRARY_EXCEPTION则代表刚刚执行的api不正常
 	*		*若不正常则需要分析辅助值reply（一个结构体）和library_error（一个int型）来分析原因，此处可见die_on_amqp_error函数就是做此分析之用的
 	*/
-	die_on_amqp_error(amqp_get_rpc_reply(conn), "Opening channel");
+	if(die_on_amqp_error(amqp_get_rpc_reply(conn), "Opening channel") == AMQP_FUN_FAILURE)
+	{
+		LogWrite(INFO, "%s", "Retry in senonds");
+		return AMQP_FUN_FAILURE;
+	}
 
     //声明queue，以下参数详见onenote笔记
 	/*  @param [in] state connection state
@@ -97,7 +102,11 @@ int run_listen(void * dummy)
 	* 目前需要了解的是最后一个参数，即声明queue可选的一些属性如何添加
 	*/
 	amqp_queue_declare_ok_t *r = amqp_queue_declare(conn, atoi(counter->channel), queuename , 0, 0, 0, 1, amqp_empty_table);//此函数的一些参数的行为还需要再深入测试
-	die_on_amqp_error(amqp_get_rpc_reply(conn), "Declaring queue");
+	if(die_on_amqp_error(amqp_get_rpc_reply(conn), "Declaring queue") == AMQP_FUN_FAILURE)
+	{
+		LogWrite(INFO, "%s", "Retry in senonds");
+		return AMQP_FUN_FAILURE;
+	}
 	//将queue同exchange绑定
 	/**
 	* amqp_queue_bind
@@ -111,7 +120,12 @@ int run_listen(void * dummy)
 	* @returns amqp_queue_bind_ok_t
 	*/
 	amqp_queue_bind(conn, atoi(counter->channel), queuename, amqp_cstring_bytes(counter->exchange_name),amqp_cstring_bytes(counter->routingkey), amqp_empty_table);//此处的routingkey也是同SN编号相同
-	die_on_amqp_error(amqp_get_rpc_reply(conn), "Binding queue");
+	//die_on_amqp_error(amqp_get_rpc_reply(conn), "Binding queue");
+	if (die_on_amqp_error(amqp_get_rpc_reply(conn), "Binding queue") == AMQP_FUN_FAILURE)
+	{
+		LogWrite(INFO, "%s", "Retry in senonds");
+		return AMQP_FUN_FAILURE;
+	}
 	/*
 	* @param [in] state connection state
 	* @param [in] channel the channel to do the RPC on
@@ -123,18 +137,36 @@ int run_listen(void * dummy)
 	* @param [in] arguments arguments
 	*/
 	amqp_basic_consume(conn, atoi(counter->channel), queuename, amqp_empty_bytes, 0, 1, 0,amqp_empty_table);
-	die_on_amqp_error(amqp_get_rpc_reply(conn), "Consuming");
+	//die_on_amqp_error(amqp_get_rpc_reply(conn), "Consuming");
+	if (die_on_amqp_error(amqp_get_rpc_reply(conn), "Consuming") == AMQP_FUN_FAILURE)
+	{
+		LogWrite(INFO, "%s", "Retry in senonds");
+		return AMQP_FUN_FAILURE;
+	}
 
 	{
-		printf("\r\n");
-		printf("amqp listen start!! \r\n");
-		printf("server ip is : %s \r\n" , counter->server_ip);
-		printf("server port is : %s \r\n" , counter->server_port);
-		printf("exchange name is : %s \r\n" , counter->exchange_name);
-		printf("queue name is : %s \r\n" , queuename.bytes);
-		printf("routingkey is : %s \r\n", counter->routingkey);
-		printf("\r\n");
-		printf("\r\n");
+
+		char * s_buf[100];
+		LogWrite(INFO, "%s", "amqp listen start");
+		sprintf(s_buf, "server ip is : %s", counter->server_ip);
+		LogWrite(INFO, "%s", s_buf);
+		sprintf(s_buf, "server port is : %s", counter->server_port);
+		LogWrite(INFO, "%s", s_buf);
+		sprintf(s_buf, "exchange name is : %s", counter->exchange_name);
+		LogWrite(INFO, "%s", s_buf);
+		sprintf(s_buf, "queue name is : %s", queuename.bytes);
+		LogWrite(INFO, "%s", s_buf);
+		sprintf(s_buf, "routingkey is : %s", counter->routingkey);
+		LogWrite(INFO, "%s", s_buf);
+		//printf("\r\n");
+		//printf("amqp listen start!! \r\n");
+		//printf("server ip is : %s \r\n" , counter->server_ip);
+		//printf("server port is : %s \r\n" , counter->server_port);
+		//printf("exchange name is : %s \r\n" , counter->exchange_name);
+		//printf("queue name is : %s \r\n" , queuename.bytes);
+		//printf("routingkey is : %s \r\n", counter->routingkey);
+		//printf("\r\n");
+		//printf("\r\n");
 		for (;;) 
 		{
 			amqp_rpc_reply_t res;
@@ -144,26 +176,30 @@ int run_listen(void * dummy)
 			//检测下是否有没有上行成功的数据
 			if (smb.Isused)
 			{
-				printf("\r\n有未发送成功的数据要重新发送\r\n");
+				LogWrite(INFO, "%s", "A Message Need to Resend");
+				//printf("\r\n有未发送成功的数据要重新发送\r\n");
 				if (Amqp_public_message(conn, "amq.direct", "server", smb.message) == AMQP_FUN_SUCCESS)
 				{
 					free(smb.message);
 					smb.Isused = 0;
-					printf("\r\n数据发送成功\r\n");
+					LogWrite(INFO, "%s", "A Resend Message Send SUCCESS");
+					//printf("\r\n数据发送成功\r\n");
 				}
 				else
 				{
-					printf("数据发送失败\r\n");
+					LogWrite(ERR, "%s", "A Resend Message Send FAILURE");
+					//printf("数据发送失败\r\n");
 				}
 				
 			}
 
 			//這個函數的第三個參數為超時時間，如果為null則為阻塞式，最後一個參數暫不使用，直接為0即可
-			printf("\r\n");
-			printf("\r\n");
-			printf("Wait for messaage ...\r\n");
-			printf("\r\n");
-			printf("\r\n");
+			LogWrite(INFO, "%s", "Wait for messaage ...");
+			//printf("\r\n");
+			//printf("\r\n");
+			//printf("Wait for messaage ...\r\n");
+			//printf("\r\n");
+			//printf("\r\n");
 			res = amqp_consume_message(conn, &envelope, NULL, 0);//此处设定的是阻塞式监听
 
 			if (AMQP_RESPONSE_NORMAL != res.reply_type) //以下几行代码的正确性还需要测试，若触发if条件后代表有异常，在持续等待信息不知道是否正确
@@ -188,7 +224,8 @@ int run_listen(void * dummy)
 							/* if we've turned publisher confirms on, and we've published a
 							* message here is a message being confirmed.
 							*/
-							printf("AMQP_BASIC_ACK_METHOD");
+							//printf("AMQP_BASIC_ACK_METHOD");
+							LogWrite(INFO, "%s", "AMQP_BASIC_ACK_METHOD");
 							break;
 						case AMQP_BASIC_RETURN_METHOD://如果消息发送路由失败
 							/* if a published message couldn't be routed and the mandatory
@@ -199,9 +236,12 @@ int run_listen(void * dummy)
 							amqp_message_t message;
 							res = amqp_read_message(conn, frame.channel, &message, 0);
 							if (AMQP_RESPONSE_NORMAL != res.reply_type) {
+								LogWrite(ERR, "%s", "AMQP_BASIC_RETURN_METHOD");
 								return AMQP_FUN_FAILURE;
 							}
-							printf("AMQP_BASIC_RETURN_METHOD");
+							//printf("AMQP_BASIC_RETURN_METHOD");
+							//正常接收到了一个ACK
+							LogWrite(INFO, "%s", "AMQP_BASIC_RETURN_METHOD");
 							amqp_destroy_message(&message);
 						}
 
@@ -216,7 +256,8 @@ int run_listen(void * dummy)
 							* any queues that were declared auto-delete, and restart any
 							* consumers that were attached to the previous channel.
 							*/
-							printf("AMQP_CHANNEL_CLOSE_METHOD");
+							//printf("AMQP_CHANNEL_CLOSE_METHOD");
+							LogWrite(ERR, "%s", "AMQP_CHANNEL_CLOSE_METHOD");
 							return AMQP_FUN_FAILURE;
 
 						case AMQP_CONNECTION_CLOSE_METHOD:
@@ -226,12 +267,14 @@ int run_listen(void * dummy)
 							*
 							* In this case the whole connection must be restarted.
 							*/
-							printf("AMQP_CONNECTION_CLOSE_METHOD");
+							//printf("AMQP_CONNECTION_CLOSE_METHOD");
+							LogWrite(ERR, "%s", "AMQP_CONNECTION_CLOSE_METHOD");
 							return AMQP_FUN_FAILURE;
 
 						default:
-							fprintf(stderr, "An unexpected method was received %u\n",
-								frame.payload.method.id);
+							//fprintf(stderr, "An unexpected method was received %u\n",frame.payload.method.id);
+							sprintf(s_buf, "An unexpected method was received %u", frame.payload.method.id);
+							LogWrite(ERR, "%s", s_buf);
 							return AMQP_FUN_FAILURE;
 						}
 					}
@@ -239,6 +282,7 @@ int run_listen(void * dummy)
 				else if (1)//目前的策略是如果第一个if条件错误，就直接进入此if语句内
 				{
 					//经测试如果断网amqp_consume_message这个函数会从阻塞式跳出，然后会进入此处代码
+					LogWrite(ERR, "%s", "AMQP Consumer Has Some Error , Thread Need To Restart");
 					return AMQP_FUN_FAILURE;
 				}
 
