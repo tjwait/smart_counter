@@ -15,6 +15,7 @@ int main()
 	LogWrite(INFO, "%s", "Smart Counter System Start!");
 	//柜子本地初始化，主要执行是连接数据库，初始化几个结构体数据，然后打开串口，启动串口接收线程，启动串口数据分析线程，测试称重板实际连接
 	//是否同数据库内设定一致，锁是否为关闭状态，在初始化以上内容的时候，柜子并未连接网络，此时不会接收任何网络发送过来的命令
+	LogWrite(INFO, "%s", "Init System Start!");
 	Init_System();
 
 	LogWrite(INFO, "%s", "ReceiveChar thread Start!");
@@ -23,8 +24,10 @@ int main()
 	_beginthread(ReceiveCharT, 0, &hCom_Tem);
 	LogWrite(INFO, "%s", "Board Com Data Parse thread Start!");
 	_beginthread(Parse_Usart_Data_Run, 0, NULL);
-
+	LogWrite(INFO, "%s", "Board Com Data Parse thread Start!");
+	LogWrite(INFO, "%s", "Check Board State Start!");
 	Board_Ready();
+
 	Locker_Get_Stat();
 	Sleep(200);
 	Init_Tem();

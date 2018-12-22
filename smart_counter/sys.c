@@ -103,6 +103,7 @@ void sys_die(const char *fmt, ...) {
 */
 void Board_Ready(void)
 {
+	char s_buf[50] = { 0 };
 	struct Board_Info * p = board_info;
 	//在发送握手指令前先将板子状态都设置为unknow状态
 	while (p != NULL)
@@ -137,13 +138,17 @@ void Board_Ready(void)
 		if (p->Board_Stat != BOARD_STAT_OK)
 		{
 			//称重板连接异常
-			sys_die("Board Ready");
+			//sys_die("Board Ready");
+			LogWrite(ERR, "%s", "Check Board State Error , System Exit!");
+			exit(-1);
 		}
-		printf("称重板 %s 连接正常！\r\n" , p->id);
+		//printf("称重板 %s 连接正常！\r\n" , p->id);
+		sprintf(s_buf, "Check Board %s State SUCCESS", p->id);
+		LogWrite(INFO, "%s", s_buf);
 		p = p->next;
 	}
-	printf("称重板连接检测正常！\r\n");
-
+	//printf("称重板连接检测正常！\r\n");
+	LogWrite(INFO, "%s", "Check All Board State SUCCESS");
 }
 
 /*
