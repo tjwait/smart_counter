@@ -23,11 +23,7 @@ DWORD    m_dwCommEvents;
 void init_serial_port(HANDLE * hCom , char * port, int baudrate)
 {
 	//先简单的实现利用char * 打开串口
-	//char com_addr[100];
-	//strcpy(com_addr, "\\\\.\\");
-	//strcat(com_addr, port);
-
-	//char * p  转  lpcwstr
+	char s_buf[100] = { 0 };
 	char szStr[100] = "\\\\.\\";
 	strcat(szStr, port);
 	WCHAR wszClassName[256];
@@ -46,34 +42,42 @@ void init_serial_port(HANDLE * hCom , char * port, int baudrate)
 	if (*hCom == INVALID_HANDLE_VALUE)
 	{ 
 		//sys_die("打开COM失败!\n");
-		LogWrite(ERR, "%s", "Com Open Failed!");
+		sprintf(s_buf, "%s Open Failed!", port);
+		LogWrite(ERR, "%s", s_buf);
 		exit(-1);
 	}
 		
 	else
 	{
 		//printf("COM打开成功！\n");
-		LogWrite(INFO, "%s", "Com Open SUCCESS");
+		sprintf(s_buf, "%s Open SUCCESS!", port);
+		LogWrite(INFO, "%s", s_buf);
+		memset(s_buf, 0, sizeof(s_buf));
 		if (setupdcb(hCom ,baudrate) == 0)
 		{
-			LogWrite(INFO, "%s", "Setup DCB SUCCESS");
+			sprintf(s_buf, "%s Setup DCB SUCCESS", port);
+			LogWrite(INFO, "%s", s_buf);
 			//printf("setup dcb 成功！\n");
 		}
 		else
 		{
 			//sys_die("setup dcb!\n");
-			LogWrite(ERR, "%s", "Setup dcb Failed!");
+			sprintf(s_buf, "%s Setup DCB Failed!", port);
+			LogWrite(ERR, "%s", s_buf);
 			exit(-1);
 		}
+		memset(s_buf, 0, sizeof(s_buf));
 		if (setuptimeout(hCom , 0, 0, 0, 0, 0) == 0)
 		{
 			//printf("setup timeout 成功！\n");
-			LogWrite(INFO, "%s", "Setup timeout SUCCESS");
+			sprintf(s_buf, "%s Setup timeout SUCCESS", port);
+			LogWrite(INFO, "%s", s_buf);
 		}
 		else
 		{
 			//sys_die("setup timeout!\n");
-			LogWrite(ERR, "%s", "Setup timeout Failed!");
+			sprintf(s_buf, "%s Setup timeout Failed!", port);
+			LogWrite(ERR, "%s", s_buf);
 			exit(-1);
 		}
 		PurgeComm(* hCom , PURGE_RXCLEAR | PURGE_TXCLEAR | PURGE_RXABORT | PURGE_TXABORT); // 在读写串口之前，还要用PurgeComm()函数清空缓冲区
