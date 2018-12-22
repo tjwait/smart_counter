@@ -17,7 +17,9 @@ int main()
 	//是否同数据库内设定一致，锁是否为关闭状态，在初始化以上内容的时候，柜子并未连接网络，此时不会接收任何网络发送过来的命令
 	Init_System();
 
+	LogWrite(INFO, "%s", "ReceiveChar thread Start!");
 	_beginthread(ReceiveChar, 0, &hCom_C);
+	LogWrite(INFO, "%s", "ReceiveCharT thread Start!");
 	_beginthread(ReceiveCharT, 0, &hCom_Tem);
 
 	_beginthread(Parse_Usart_Data_Run, 0, NULL);
