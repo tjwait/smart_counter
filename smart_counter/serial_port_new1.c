@@ -371,6 +371,7 @@ void ReceiveChar(void * Com_handle)
 								srb[i].data[j] = RXBuff_Array[j];
 							}
 							REC_BUF_LOCKER = LOCKER_FREE;
+							LogWrite(INFO, "%s", "Board Com Rec A New Message");
 							break;
 						}
 					}
@@ -386,32 +387,7 @@ void ReceiveChar(void * Com_handle)
 			{
 				RXBuff_Array[RXBuff_Array_Len++] = RXBuff;
 			}
-			/*
-			RXBuff_Array[RXBuff_Array_Len++] = RXBuff;
 			
-			if (RXBuff == '#')//接收一条数据完毕
-			{
-				//RXBuff_Array[RXBuff_Array_Len] = '\0';
-				//将接收到的数据存入到缓冲区链表的一个节点中
-				while (REC_BUF_LOCKER != LOCKER_FREE) { Sleep(20); }//等待锁释放
-				REC_BUF_LOCKER = LOCKER_USED;
-				for (int i = 0; i < SERIAL_REC_BUF_NODE_NUM; i++)
-				{
-					if (srb[i].IsUsed == SERIAL_REC_BUF_NODE_FREE)
-					{
-						srb[i].IsUsed = SERIAL_REC_BUF_NODE_USED;
-						srb[i].len = RXBuff_Array_Len;
-						//strcpy(srb[i].data, RXBuff_Array);//拷贝不含'\0'
-						for (int j = 0; j < RXBuff_Array_Len; j++)
-						{
-							srb[i].data[j] = RXBuff_Array[j];
-						}
-						REC_BUF_LOCKER = LOCKER_FREE;
-						break;
-					}
-				}
-			}
-			*/
 			if (!bResult) 
 			{// 当ReadFile和WriteFile返回FALSE时，不一定就是操作失//败，线程应该调用GetLastError函数分析返回的结果
 				switch (dwError = GetLastError()) 
@@ -510,13 +486,12 @@ void ReceiveCharT(void * Com_handle)
 				if (!mark)
 				{
 					//如果之前没有收到反斜杠，则代表此处开始重新接受一个新的数据
+					LogWrite(INFO, "%s", "Temperature Com Rec A New Message");
 					RXBuff_Array[RXBuff_Array_Len++] = RXBuff;
 					for (int j = 0; j < RXBuff_Array_Len; j++)
 					{
 						Tem[j] = RXBuff_Array[j];
 					}
-
-
 				}
 				else
 				{

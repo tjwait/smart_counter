@@ -19,6 +19,7 @@ int main()
 
 	_beginthread(ReceiveChar, 0, &hCom_C);
 	_beginthread(ReceiveCharT, 0, &hCom_Tem);
+
 	_beginthread(Parse_Usart_Data_Run, 0, NULL);
 	Board_Ready();
 	Locker_Get_Stat();
