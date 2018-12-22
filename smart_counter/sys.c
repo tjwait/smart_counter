@@ -29,15 +29,29 @@ void Init_System(void)
 	}
 	if (recon >= 4)
 	{
-		LogWrite(INFO, "%s", "Init DataBase Failed!");
-		exit(-1);
+		LogWrite(ERR, "%s", "Init DataBase Failed!");
+		exit(-1);//数据库连接失败时严重错误，因此直接退出程序
 	}
 	else
 	{
 		LogWrite(INFO, "%s", "Init DataBase SUCCESS!");
 	}
 	//init_db();
-	Get_Counter_Info();
+	LogWrite(INFO, "%s", "Get Counter Info Start");
+	recon = 0;
+	while ((Get_Counter_Info() == DB_FAILURE) && (recon < 4))
+	{
+		recon++;
+	}
+	if (recon >= 4)
+	{
+		LogWrite(ERR, "%s", "Init Counter Failed!");
+		exit(-1);//获取柜子信息错误为严重错误，因此直接退出程序
+	}
+	else
+	{
+		LogWrite(INFO, "%s", "Init Counter SUCCESS!");
+	}
 	Get_Board_Info();
 	//Get_Item_Info();
 	init_serial_port( &hCom_C, counter->com_port, 9600);

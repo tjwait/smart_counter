@@ -72,18 +72,18 @@ int Get_Counter_Info()
 	}
 
 	counter = (struct counter_info *)malloc(sizeof(struct counter_info));
-
-	//连接数据库获取信息
-	//if (NULL == mysql_real_connect(mysql, "localhost", "root", "4567324", "smart_sales_counter", 3306, NULL, 0))
-	//{
-		//finish_with_error(mysql);
-	//}
+	if (counter == NULL)
+	{
+		LogWrite(ERR, "%s", "counter malloc failed ");
+		return DB_FAILURE;
+	}
 
 	char  query_sql[1024] = "select * from smart_sales_counter.counter_info";
 
 	if (mysql_query(mysql, query_sql))
 	{
 		finish_with_error(mysql);
+		return DB_FAILURE;
 	}
 
 	MYSQL_RES * result;//保存结果的指针
@@ -93,12 +93,18 @@ int Get_Counter_Info()
 	if (NULL == result)
 	{
 		finish_with_error(mysql);
+		return DB_FAILURE;
 	}
 
 	int num_fields = mysql_num_fields(result);//获取结果的表中有多少列
 	int num_row = mysql_num_rows(result);//获取行数，正常情况下应该只有1行
 
-	if (num_row > 1) { printf("counter info rows greater than 1\r\n"); }//counter_info 这张表的记录数量不应该多于一条，否则按照目前逻辑，应该只保留最后一行的记录
+	if (num_row > 1) 
+	{ 
+		//如果柜子记录信息多于1条，则只获取第一条数据内容
+		LogWrite(WARN, "%s", "counter info rows greater than 1 ");
+		//printf("counter info rows greater than 1\r\n"); 
+	}
 
 	MYSQL_ROW row;//遍历结果的各个行用的变量
 	
@@ -146,11 +152,11 @@ int Get_Counter_Info()
 		counter->boards_num = 0;//目前暂未使用
 		counter->locker_stat = -1;
 		counter->IsBusy = -1;
+		break;//如果有多条记录，此处会强制退出while
 		//printf("%s ", row[i] ? row[i] : "NULL");
 	}
 	mysql_free_result(result);//释放结果资源
-							  
-							  
+							  					  
 	//db_close();
 
 	return DB_SUCCESS;
