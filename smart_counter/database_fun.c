@@ -38,7 +38,7 @@ int init_db()
 	//连接数据库获取信息
 
 
-	if (NULL == mysql_real_connect(mysql, "localhost", "root", "4567324", "smart_sales_counter", 1306, NULL, 0))
+	if (NULL == mysql_real_connect(mysql, "localhost", "root", "4567324", "smart_sales_counter", 3306, NULL, 0))
 		//if (NULL == mysql_real_connect(mysql, "192.168.1.122", "root", "123456", "smart_sales_counter", 3306, NULL, 0))
 		//if (NULL == mysql_real_connect(mysql, "localhost", "root", "123456", "smart_sales_counter", 3306, NULL, 0))
 	{
