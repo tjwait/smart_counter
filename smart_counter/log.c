@@ -101,23 +101,28 @@ static void PrintfLog(char * fromat, va_list args) {
 		case 's': {
 			s = va_arg(args, char *);
 			fprintf(loging.logfile, "%s", s);
+			printf("%s", s);
 			break; }
 		case 'd': {
 			d = va_arg(args, int);
 			fprintf(loging.logfile, "%d", d);
+			printf("%d", d);
 			break; }
 		case 'c': {
 			c = (char)va_arg(args, int);
 			fprintf(loging.logfile, "%c", c);
+			printf("%c", c);
 			break; }
 		default: {
 			if (*fromat != '%'&&*fromat != '\n')
 				fprintf(loging.logfile, "%c", *fromat);
+				printf("%c", *fromat);
 			break; }
 		}
 		fromat++;
 	}
 	fprintf(loging.logfile, "%s", "\n");
+	printf("%s", "\n");
 }
 
 static int initlog(unsigned char loglevel) {
@@ -193,9 +198,9 @@ int LogWrite(unsigned char loglevel, char *fromat, ...)
 			rtv = -1;
 			break;
 		}
-		//打印日志信息
+		//打印日志信息（代码到达此处代表此条要输出的日志同目前系统允许输出的日志等级相符）
 		va_start(args, fromat);
-		PrintfLog(fromat, args);
+		PrintfLog(fromat, args);//该函数内部增加的printf输出，即实现向日志文件输出的同时，向命令行输出信息
 		va_end(args);
 		//文件刷出
 		fflush(loging.logfile);

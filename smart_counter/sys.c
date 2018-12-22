@@ -383,7 +383,7 @@ void Init_Tem()
 	sys_tem.Time = 0;
 	sys_tem.Tem_Cur = 0;
 
-	printf("获取初始化温度\r\n");
+	//printf("获取初始化温度\r\n");
 	LogWrite(INFO, "%s", "Get Init Temperature");
 	char send_buf[6];
 	send_buf[0] = '@';
@@ -397,14 +397,14 @@ void Init_Tem()
 	if (Tem[4] != -100)
 	{
 		sprintf(s_buf, "Init Temperature : %d", Tem[4]);
-		printf("获取初始化温度正常  %d 摄氏度\r\n" , Tem[4]);
+		//printf("获取初始化温度正常  %d 摄氏度\r\n" , Tem[4]);
 		LogWrite(INFO, "%s", s_buf);
 		sys_tem.Tem_Cur = sys_tem.Tem = Tem[4];
 	}
 	else
 	{
 		LogWrite(ERR, "%s", "Get Init Temperature Error");
-		printf("获取初始化温度异常\r\n");
+		//printf("获取初始化温度异常\r\n");
 	}
 
 }
@@ -491,7 +491,7 @@ void Counter_Get_Tem_Ex()
 	char s_buf[100] = { 0 };
 	sprintf(s_buf, "Get Temperature Periodic In %d", sys_tem.delay);
 	LogWrite(INFO, "%s", s_buf);
-	printf("\r\n开始周期检测温度，周期为 %d 毫秒\r\n", sys_tem.delay);
+	//printf("\r\n开始周期检测温度，周期为 %d 毫秒\r\n", sys_tem.delay);
 	while (1)
 	{
 		memset(s_buf, 0, sizeof(s_buf));
@@ -511,7 +511,7 @@ void Counter_Get_Tem_Ex()
 			sys_tem.Tem_Cur = (signed char)Tem[4];
 			sprintf(s_buf, "Get Temperature SUCCESS :%d", sys_tem.Tem_Cur);
 			LogWrite(INFO, "%s", s_buf);
-			printf("获取温度正常 %d \r\n", sys_tem.Tem_Cur);
+			//printf("获取温度正常 %d \r\n", sys_tem.Tem_Cur);
 
 			if (sys_tem.Time == sys_tem.MaxTime)
 			{
@@ -538,7 +538,7 @@ void Counter_Get_Tem_Ex()
 		else
 		{
 			LogWrite(INFO, "%s", "Get Temperature CRC FAILURE ");
-			printf("温度传感器校验异常\r\n");
+			//printf("温度传感器校验异常\r\n");
 		}
 		for (int i = 0; i < 7; i++)
 		{
