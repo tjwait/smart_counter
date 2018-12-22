@@ -21,7 +21,22 @@ struct Sys_Tem sys_tem;
 */
 void Init_System(void)
 {
-	init_db();
+	LogWrite(INFO, "%s", "Init DataBase Start!");
+	int recon = 0;
+	while ( (init_db() == DB_FAILURE) && (recon < 4) )
+	{
+		recon++;
+	}
+	if (recon >= 4)
+	{
+		LogWrite(INFO, "%s", "Init DataBase Failed!");
+		exit(-1);
+	}
+	else
+	{
+		LogWrite(INFO, "%s", "Init DataBase SUCCESS!");
+	}
+	//init_db();
 	Get_Counter_Info();
 	Get_Board_Info();
 	//Get_Item_Info();

@@ -11,10 +11,9 @@ MYSQL * mysql = NULL;
 static int finish_with_error()
 
 {
-
-	fprintf(stderr, "%s\n", mysql_error(mysql));
-
-	mysql_close(mysql);
+	LogWrite(ERR, "%s", mysql_error(mysql));
+	//fprintf(stderr, "%s\n", mysql_error(mysql));
+	//mysql_close(mysql);
 
 	return	-1;
 
@@ -28,22 +27,27 @@ int init_db()
 
 	if (mysql == NULL)
 	{
-		fprintf(stderr, "%s\n", mysql_error(mysql));
-		return -1;
+		//fprintf(stderr, "%s\n", mysql_error(mysql));
+		LogWrite(ERR, "%s", mysql_error(mysql));
+		//exit(-1);
+		return DB_FAILURE;
 	}
 
 	mysql_options(mysql, MYSQL_SET_CHARSET_NAME, "gbk");//若不增加此句，则输出中文为问号，
 
-														//连接数据库获取信息
-	if (NULL == mysql_real_connect(mysql, "localhost", "root", "4567324", "smart_sales_counter", 3306, NULL, 0))
-	//if (NULL == mysql_real_connect(mysql, "192.168.1.122", "root", "123456", "smart_sales_counter", 3306, NULL, 0))
-	//if (NULL == mysql_real_connect(mysql, "localhost", "root", "123456", "smart_sales_counter", 3306, NULL, 0))
+	//连接数据库获取信息
+
+
+	if (NULL == mysql_real_connect(mysql, "localhost", "root", "4567324", "smart_sales_counter", 1306, NULL, 0))
+		//if (NULL == mysql_real_connect(mysql, "192.168.1.122", "root", "123456", "smart_sales_counter", 3306, NULL, 0))
+		//if (NULL == mysql_real_connect(mysql, "localhost", "root", "123456", "smart_sales_counter", 3306, NULL, 0))
 	{
 		finish_with_error(mysql);
+		mysql_close(mysql);
+		return DB_FAILURE;
 	}
 
 	return DB_SUCCESS;
-
 }
 
 //关闭数据库，经测试这个关闭函数在数据库对象未初始化直接关闭没有异常，但是如果初始化后连接了数据库，然后关闭，再次关闭的时候就会报错

@@ -7,6 +7,7 @@ extern "C" {
 #endif
 
 #include "database_fun.h"
+#include "log.h"
 
 #define CF(a , b)  (a##b)
 //#define CFF(a)     (#a)
