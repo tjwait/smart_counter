@@ -1629,12 +1629,12 @@ void Parse_Usart_Data_Run()
 							if ((srb[i].data[1] == ((ASCII_To_byte(p->locker_id[0]) << 4) & 0xf0) + ASCII_To_byte(p->locker_id[1])) &&
 								(srb[i].data[2] == ((ASCII_To_byte(p->locker_id[2]) << 4) & 0xf0) + ASCII_To_byte(p->locker_id[3])))
 							{
-								
+								/*
 								if (srb[i].data[4] == 0xFF) { printf("locker error\r\n"); }
 								else if (srb[i].data[4] == 0x02) { printf("locker closed\r\n"); }
 								else if (srb[i].data[4] == 0x01) { printf("locker opening\r\n"); }
 								else if (srb[i].data[4] == 0x04) { printf("locker waiting for open or close\r\n"); }
-								
+								*/
 								counter->locker_stat = srb[i].data[4];
 							}
 						}
