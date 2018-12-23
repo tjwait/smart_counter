@@ -309,6 +309,7 @@ void Destory_connection(amqp_connection_state_t conn, amqp_channel_t channel)
 	//die_on_amqp_error(amqp_channel_close(conn, channel, AMQP_REPLY_SUCCESS),"Closing channel");
 	//die_on_amqp_error(amqp_connection_close(conn, AMQP_REPLY_SUCCESS),"Closing connection");
 	//die_on_error(amqp_destroy_connection(conn), "Ending connection");
+	LogWrite(INFO, "%s", "Destory MQ Connection");
 	amqp_channel_close(conn, channel, AMQP_REPLY_SUCCESS);
 	amqp_connection_close(conn, AMQP_REPLY_SUCCESS);
 	amqp_destroy_connection(conn);
@@ -344,12 +345,14 @@ static int json_parse_fun(char * amqp_message)
 				char * message_buf = Get_up_message_message("up_message", "msn", json_object_get_string(json_object_buf, "MSN"));
 				if (message_buf == NULL)
 				{
-					printf("\r\n收到了一条新的命令开始处理\r\n");
+					//printf("\r\n收到了一条新的命令开始处理\r\n");
+					LogWrite(INFO, "%s", "Rec A New Message , Start Parse CMD");
 					Check_Cmd(json_object_buf);
 				}
 				else
 				{
-					printf("\r\n收到了一条MSN重复的命令，将保存的上行数据重新上传\r\n");
+					//printf("\r\n收到了一条MSN重复的命令，将保存的上行数据重新上传\r\n");
+					LogWrite(INFO, "%s", "Rec Message MSN Duplication , Resend To Server");
 					Amqp_public_message(conn, "amq.direct", "server", message_buf);
 					free(message_buf);//显式释放
 				}
@@ -359,13 +362,15 @@ static int json_parse_fun(char * amqp_message)
 		else
 		{
 			//接收数据类型错误
-			printf("Received message  not a JSON Object\r\n");
+			//printf("Received message  not a JSON Object\r\n");
+			LogWrite(ERR, "%s", "Rec Message Type Error , not a JSON Object");
 		}
 	}
 	else
 	{
 		//解析字符串有错误
-		printf("Received message was not a JSON\r\n");
+		//printf("Received message was not a JSON\r\n");
+		LogWrite(ERR, "%s", "Rec Message Error , not a JSON");
 	}
 
 	json_value_free(root_value);
