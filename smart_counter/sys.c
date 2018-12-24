@@ -2274,7 +2274,9 @@ char *  Procedure_Answer_Message(char * message_sn , char * cmd_name , int Res ,
 	json_object_set_string(root_object, "cmdid", cmd_name);
 	Int_To_CharArray(Res, change_code);
 	json_object_dotset_string(root_object, "Result.Res", change_code);
-	json_object_dotset_string(root_object, "Result.Date", ctime(&timep));
+	char * ctime_buf = ctime(&timep);
+	ctime_buf[strlen(ctime_buf) - 1] = NULL;
+	json_object_dotset_string(root_object, "Result.Date", ctime_buf);
 	json_object_dotset_value(root_object, "Result.Data", sub_value);
 	//以下内存会最终通过smb.message指针指向，并且在发送成功后被释放
 	//若执行的是sql语句，而且返回的数据过多，以下代码会有问题，需要调整
