@@ -75,8 +75,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>D:\Microsoft Visual Studio\vs2017Projects\smart_counter\smart_counter;C:\mysql-5.7.17-winx64\include;D:\Microsoft Visual Studio\vs2017Projects\smart_counter_6_finall_v1\finall_v1\lib\librabbitmq;D:\Microsoft Visual Studio\vs2017Projects\smart_counter_6_finall_v1\finall_v1\lib\librabbitmq\win32\msinttypes;$(IncludePath)</IncludePath>
-    <LibraryPath>D:\Microsoft Visual Studio\vs2017Projects\smart_counter_6_finall_v1\finall_v1\lib\librabbitmq;C:\mysql-5.7.17-winx64\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)$(Platform)\$(Configuration)\..\..\smart_counter;$(SolutionDir)$(Platform)\$(Configuration)\..\..\..\lib\mysql\include;$(SolutionDir)$(Platform)\$(Configuration)\..\..\..\lib\librabbitmq;$(SolutionDir)$(Platform)\$(Configuration)\..\..\..\lib\librabbitmq\win32\msinttypes;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)$(Platform)\$(Configuration)\..\..\..\lib\librabbitmq;$(SolutionDir)$(Platform)\$(Configuration)\..\..\..\lib\mysql\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -141,7 +141,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\smart_counter_6_finall_v1\finall_v1\lib\librabbitmq\utils.c" />
     <ClCompile Include="amqp_fun.c" />
     <ClCompile Include="database_fun.c" />
     <ClCompile Include="log.c" />
@@ -150,6 +149,7 @@
     <ClCompile Include="scheme.c" />
     <ClCompile Include="serial_port_new1.c" />
     <ClCompile Include="sys.c" />
+    <ClCompile Include="utils.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\smart_counter_6_finall_v1\finall_v1\lib\librabbitmq\amqp.h" />
@@ -164,7 +164,6 @@
     <ClInclude Include="..\..\smart_counter_6_finall_v1\finall_v1\lib\librabbitmq\amqp_tcp_socket.h" />
     <ClInclude Include="..\..\smart_counter_6_finall_v1\finall_v1\lib\librabbitmq\amqp_time.h" />
     <ClInclude Include="..\..\smart_counter_6_finall_v1\finall_v1\lib\librabbitmq\config.h" />
-    <ClInclude Include="..\..\smart_counter_6_finall_v1\finall_v1\lib\librabbitmq\utils.h" />
     <ClInclude Include="amqp_fun.h" />
     <ClInclude Include="database_fun.h" />
     <ClInclude Include="global.h" />
@@ -173,6 +172,7 @@
     <ClInclude Include="scheme.h" />
     <ClInclude Include="serial_port.h" />
     <ClInclude Include="sys.h" />
+    <ClInclude Include="utils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
