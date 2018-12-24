@@ -148,7 +148,7 @@ void Board_Ready(void)
 		p = p->next;
 	}
 	//printf("称重板连接检测正常！\r\n");
-	LogWrite(INFO, "%s", "Check All Board State SUCCESS");
+	LogWrite(INFO, "%s", "Check All Boards State SUCCESS");
 }
 
 /*
@@ -577,7 +577,8 @@ int Locker_Open()
 	Sleep(5000);
 	if (counter->locker_stat == -1)//考虑到此函数的嵌入式返回值存在一个bug，因此此处只判定是否有返回值
 	{
-		printf("未接收到锁的返回数据！\r\n");
+		//printf("未接收到锁的返回数据！\r\n");
+		LogWrite(ERR, "%s", "GEN_ERROR_COMMUNICATION_ERROR");
 		return GEN_ERROR_COMMUNICATION_ERROR;
 	}
 	return counter->locker_stat;
@@ -617,7 +618,8 @@ int Locker_Open_Closed()
 	Sleep(5000);
 	if (counter->locker_stat == -1)//考虑到此函数的嵌入式返回值存在一个bug，因此此处只判定是否有返回值
 	{
-		printf("未接收到锁的返回数据！\r\n");
+		LogWrite(ERR, "%s", "GEN_ERROR_COMMUNICATION_ERROR");
+		//printf("未接收到锁的返回数据！\r\n");
 		return GEN_ERROR_COMMUNICATION_ERROR;
 	}
 
@@ -627,12 +629,11 @@ int Locker_Open_Closed()
 		Sleep(2000);
 	} while (counter->locker_stat != 2 && ((wait_time++) < 15));
 
-	//while (counter->locker_stat != 2 && ((wait_time ++) < 30))//在门没有关闭之前都会循环,此处要根据业务需要增加超时报警推出此循环的功能
-	//{
-	//	Locker_Get_Stat();
-	//	Sleep(2000);
-	//}
-	printf("执行一次开关门的结果 ：%d\r\n" , counter->locker_stat);
+
+	//printf("执行一次开关门的结果 ：%d\r\n" , counter->locker_stat);
+	char * s_buf[100] = { 0 };
+	sprintf(s_buf, "Door State : %d , 1-opening 2-close 3-waiting open 4-Error", counter->locker_stat);
+	LogWrite(ERR, "%s", s_buf);
 	return counter->locker_stat;
 	//counter->IsBusy = -1;
 	//counter->locker_stat = -1;
@@ -2276,11 +2277,11 @@ char *  Procedure_Answer_Message(char * message_sn , char * cmd_name , int Res ,
 	json_object_dotset_string(root_object, "Result.Date", ctime(&timep));
 	json_object_dotset_value(root_object, "Result.Data", sub_value);
 	//以下内存会最终通过smb.message指针指向，并且在发送成功后被释放
+	//若执行的是sql语句，而且返回的数据过多，以下代码会有问题，需要调整
 	char * json_string = (char *)malloc(json_serialization_size(root_value));//json_serialization_size这个函数的返回值已经考虑了将原字符串长度进行扩展，因为还要增加一些额外的字符，如换行、反斜杠、大括号等
 	json_serialize_to_buffer(root_value, json_string, json_serialization_size(root_value));
 	
-	//添加数据库
-	
+	//向up_message表中添加数据
 	SQL_INSERT_INTO_Up_Message(message_sn, json_string, timep);
 
 	//释放json资源
@@ -2359,7 +2360,8 @@ int Board_Basic_Value_Set_By_id(char * board_id , int times)
 {
 	struct Board_Info * p = board_info;
 	int boards_num = 0;
-	printf("等待去皮完成");
+	//printf("等待去皮完成");
+	LogWrite(INFO, "%s", "Waiting For Basic Value Finish");
 	while (p != NULL)
 	{
 
@@ -2369,23 +2371,25 @@ int Board_Basic_Value_Set_By_id(char * board_id , int times)
 			p->IsBasicValueSave = 0;//去皮未保存
 			for (int i = 0; i < times; i++)
 			{
-				printf("...");
+				//printf("...");
 				Send_CMD(&hCom_C, p->id, BOARD_CMD_BASIC_VALUE, NULL, 0, 1, 0);
 				Sleep(5000);
 			}
-			printf("...");
+			//printf("...");
 			Send_CMD(&hCom_C, p->id, BOARD_CMD_BASIC_VALUE_SAVE, NULL, 0, 1, 0);
 			Sleep(1000);
 			if (p->IsBasicValue == 0 || p->IsBasicValueSave == 0)
 			{
 				//去皮失败
-				printf("\r\n去皮失败！！\r\n");
+				//printf("\r\n去皮失败！！\r\n");
+				LogWrite(WARN, "%s", "GEN_ERROR_COMMUNICATION_ERROR");
 				return GEN_ERROR_COMMUNICATION_ERROR;
 			}
 			else
 			{
 				//去皮成功
-				printf("\r\n称重板 ： %s  去皮成功！！\r\n" , p->id);
+				//printf("\r\n称重板 ： %s  去皮成功！！\r\n" , p->id);
+				LogWrite(INFO, "%s", "Set Basic Value SUCCESS");
 				return GEN_OK;
 			}
 		}
@@ -2394,7 +2398,8 @@ int Board_Basic_Value_Set_By_id(char * board_id , int times)
 	}
 	if (p == NULL)
 	{
-		printf("  称重板编号错误！\r\n");
+		//printf("  称重板编号错误！\r\n");
+		LogWrite(WARN, "%s", "SETTING_BASIC_VALUE_BOARD_ERROR");
 		return SETTING_BASIC_VALUE_BOARD_ERROR;
 	}
 	return GEN_MEM_OVER;//代码应该永远不会达到此处,若到达此处则代表内存有益处的风险
@@ -2456,24 +2461,7 @@ int Board_Curavture_Value_Set_Ex(char * board_id , UINT16 weight , int times , i
 {
 
 	struct Board_Info * p = board_info;
-
-	//if (IsCheck_Tem)
-	//{
-	//	if (!sys_tem.IsCheck)
-	//	{
-	//		//温度没有变化无需校准
-	//		printf("最后一次测量温度为 %d 摄氏度 ， 系统初始温度为 %d 摄氏度，无需校准\r\n", sys_tem.Tem_Cur, sys_tem.Tem);
-	//		return 1;
-	//	}
-	//	else
-	//	{
-	//		//温度变化及时间满足校准要求，先将温度结构体数据进行调整
-	//		sys_tem.Tem = sys_tem.Tem_Cur;
-	//		sys_tem.Time = 0;
-	//		sys_tem.IsCheck = 0;
-	//	}
-	//}
-
+	char * s_buf[100] = { 0 };
 	while (p != NULL)
 	{
 
@@ -2483,7 +2471,9 @@ int Board_Curavture_Value_Set_Ex(char * board_id , UINT16 weight , int times , i
 			if (weight < 1000)//如果校准的货物重量小于1000克，则不执行校准，是否合适还需要测试
 			{
 				//printf("校准货物过轻-- %d  ，采用原有曲率测量\r\n", p->board_items_weight_all);
-				printf("称重板 %s 校准重量过轻，小于1000克 , 无法校准\r\n", p->id );
+				//printf("称重板 %s 校准重量过轻，小于1000克 , 无法校准\r\n", p->id );
+				sprintf(s_buf, "Board %s SETTING_CURAVTURE_VALUE_TOO_LIGHT", p->id);
+				LogWrite(INFO, "%s", s_buf);
 				return SETTING_CURAVTURE_VALUE_TOO_LIGHT;
 			}
 
@@ -2493,14 +2483,16 @@ int Board_Curavture_Value_Set_Ex(char * board_id , UINT16 weight , int times , i
 			{
 				//Send_CMD(&hCom_C, p->id, BOARD_CMD_CURVATURE, (unsigned char *)&p->board_items_weight_all, 2, 1, 1);
 				Send_CMD(&hCom_C, p->id, BOARD_CMD_CURVATURE, (unsigned char *)&weight, 2, 1, 1);
-				printf("...");
+				//printf("...");
 				Sleep(5000);
 			}
 
 			if (p->ISCurvatureValue == 0)
 			{
 				//校准失败
-				printf("\r\n校准失败！！\r\n");
+				//printf("\r\n校准失败！！\r\n");
+				sprintf(s_buf, "Board %s GEN_ERROR_COMMUNICATION_ERROR", p->id);
+				LogWrite(ERR, "%s", s_buf);
 				return GEN_ERROR_COMMUNICATION_ERROR;
 			}
 
@@ -2512,21 +2504,27 @@ int Board_Curavture_Value_Set_Ex(char * board_id , UINT16 weight , int times , i
 				if (p->ISCurvatureValueSave == 0)
 				{
 					//校准失败
-					printf("\r\n校准保存失败！！\r\n");
+					//printf("\r\n校准保存失败！！\r\n");
+					sprintf(s_buf, "Board %s GEN_ERROR_COMMUNICATION_ERROR", p->id);
+					LogWrite(ERR, "%s", s_buf);
 					return GEN_ERROR_COMMUNICATION_ERROR;
 					//getchar(1);
 					//sys_die("\r\n校准保存失败！！\r\n");
 				}
 				else
 				{
-					printf("称重板 %s 保存校准完成！\r\n" , p->id);
+					//printf("称重板 %s 保存校准完成！\r\n" , p->id);
+					sprintf(s_buf, "Board %s Set Curavture Save SUCCESS", p->id);
+					LogWrite(INFO, "%s", s_buf);
 					p->ISNeedCur = ISNEEDCUR_NO;
 					return GEN_OK;
 				}
 			}
 			else
 			{
-				printf("称重板 %s 不保存校准完成！\r\n", p->id);
+				//printf("称重板 %s 不保存校准完成！\r\n", p->id);
+				sprintf(s_buf, "Board %s Set Curavture No Save SUCCESS", p->id);
+				LogWrite(INFO, "%s", s_buf);
 				p->ISNeedCur = ISNEEDCUR_NO;
 				return GEN_OK;
 			}
@@ -2538,9 +2536,13 @@ int Board_Curavture_Value_Set_Ex(char * board_id , UINT16 weight , int times , i
 	}
 	if (p == NULL)
 	{
-		printf("  称重板编号错误！\r\n");
+		//printf("  称重板编号错误！\r\n");
+		sprintf(s_buf, "Board %s SETTING_CURAVTURE_VALUE_BOARD_ERROR", p->id);
+		LogWrite(ERR, "%s", s_buf);
 		return SETTING_CURAVTURE_VALUE_BOARD_ERROR;
 	}
+	sprintf(s_buf, "Board %s SETTING CURAVTURE GEN_MEM_OVER", p->id);
+	LogWrite(ERR, "%s", s_buf);
 	return GEN_MEM_OVER;//代码应该永远不会达到此处,若到达此处则代表内存有益处的风险
 
 }
@@ -2636,6 +2638,7 @@ int Board_Get_Weight_Ex(char * board_id)
 {
 	struct Board_Info * p = board_info;
 	int res = 0;
+	char * s_buf[100] = { 0 };
 	while (p != NULL)
 	{
 		if (strcmp(p->id, board_id) == 0)
@@ -2645,12 +2648,16 @@ int Board_Get_Weight_Ex(char * board_id)
 			Sleep(5000);
 			if (p->board_items_weight_all_after_close_door != 65534)
 			{
-				printf("读取重量完成！\r\n");
+				//printf("读取重量完成！\r\n");
+				sprintf(s_buf, "Board %s BOARD_CMD_GET_WEIGHT SUCCESS", p->id);
+				LogWrite(INFO, "%s", s_buf);
 				return GEN_OK;
 			}
 			else
 			{
-				printf("重量通信异常！\r\n");
+				//printf("重量通信异常！\r\n");
+				sprintf(s_buf, "Board %s GEN_ERROR_COMMUNICATION_ERROR", p->id);
+				LogWrite(ERR, "%s", s_buf);
 				return GEN_ERROR_COMMUNICATION_ERROR;
 			}
 		}
@@ -2658,9 +2665,13 @@ int Board_Get_Weight_Ex(char * board_id)
 	}
 	if (p == NULL)
 	{
-		printf("  称重板编号错误！\r\n");
+		//printf("  称重板编号错误！\r\n");
+		sprintf(s_buf, "Board %s WEIGHT_VALUE_BOARD_ERROR", p->id);
+		LogWrite(ERR, "%s", s_buf);
 		return WEIGHT_VALUE_BOARD_ERROR;
 	}
+	sprintf(s_buf, "Board %s GEN_MEM_OVER", p->id);
+	LogWrite(ERR, "%s", s_buf);
 	return GEN_MEM_OVER;//代码应该永远不会达到此处,若到达此处则代表内存有益处的风险
 
 }

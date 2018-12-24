@@ -394,8 +394,8 @@ static int Check_Cmd(JSON_Object * json_object)
 		//char * cmd = json_value_get_string(val);
 		if (strcmp(cmd, "Shopping") == 0)//执行一次消费
 		{
-
-			printf("执行一次消费\r\n");
+			LogWrite(INFO, "%s", "Shopping Start");
+			//printf("执行一次消费\r\n");
 			//char * result_p = Procedure_Sales();
 
 			//char * result_p = Procedure_Sales_Ex(json_object);
@@ -415,7 +415,8 @@ static int Check_Cmd(JSON_Object * json_object)
 		}
 		else if (strcmp(cmd, "Unlock") == 0)
 		{
-			printf("执行一次开门\r\n");
+			//printf("执行一次开门\r\n");
+			LogWrite(INFO, "%s", "Unlock Start");
 			smb.message = Procedure_Open_Lock(json_object);
 			if (smb.message != NULL)
 			{
@@ -431,7 +432,8 @@ static int Check_Cmd(JSON_Object * json_object)
 		}
 		else if (strcmp(cmd, "Unlock_Close") == 0)
 		{
-			printf("执行一次开关门\r\n");
+			//printf("执行一次开关门\r\n");
+			LogWrite(INFO, "%s", "Unlock Close Start");
 			smb.message = Procedure_Open_Close(json_object);
 			if (smb.message != NULL)
 			{
@@ -447,7 +449,8 @@ static int Check_Cmd(JSON_Object * json_object)
 		}
 		else if (strcmp(cmd, "Locker_State") == 0)
 		{
-			printf("获取柜子门的状态\r\n");
+			//printf("获取柜子门的状态\r\n");
+			LogWrite(INFO, "%s", "Get Door State");
 			smb.message = Procedure_Get_Locker_State(json_object);
 			if (smb.message != NULL)
 			{
@@ -463,7 +466,8 @@ static int Check_Cmd(JSON_Object * json_object)
 		}
 		else if (strcmp(cmd, "Basic_Value") == 0)//指定称重板编号执行去皮
 		{
-			printf("执行一次去皮\r\n");
+			//printf("执行一次去皮\r\n");
+			LogWrite(INFO, "%s", "Set Basic Value");
 			smb.message = Procedure_Basic_Value_Set(json_object);
 			if (smb.message != NULL)
 			{
@@ -479,7 +483,8 @@ static int Check_Cmd(JSON_Object * json_object)
 		}
 		else if (strcmp(cmd, "Curavture_Value") == 0)//指定称重板编号曲率校准
 		{
-			printf("执行一次曲率校准\r\n");
+			//printf("执行一次曲率校准\r\n");
+			LogWrite(INFO, "%s", "Set Curavture Value");
 			smb.message = Procedure_Set_Curavture_Value(json_object);
 			if (smb.message != NULL)
 			{
@@ -495,7 +500,8 @@ static int Check_Cmd(JSON_Object * json_object)
 		}
 		else if (strcmp(cmd, "Weight_Value") == 0)//指定称重板编号的重量获取,可以指定多个
 		{
-			printf("执行一次称重\r\n");
+			//printf("执行一次称重\r\n");
+			LogWrite(INFO, "%s", "Get Weight Value");
 			smb.message = Procedure_Get_Weight_Value(json_object);
 			if (smb.message != NULL)
 			{
@@ -511,7 +517,8 @@ static int Check_Cmd(JSON_Object * json_object)
 		}
 		else if (strcmp(cmd, "Board_State") == 0)//获取称重板状态
 		{
-			printf("执行一次获取称重板状态\r\n");
+			//printf("执行一次获取称重板状态\r\n");
+			LogWrite(INFO, "%s", "Get Board State");
 			smb.message = Procedure_Get_Board_State();
 			if (smb.message != NULL)
 			{
@@ -529,7 +536,8 @@ static int Check_Cmd(JSON_Object * json_object)
 		{
 			//执行传输过来的sql语句，并返回结果,结果分为两类，select类和增删改的结果
 			//select结果是查询的数据，增删改的结果是影响的数据数量
-			printf("执行一条sql select语句\r\n");
+			//printf("执行一条sql select语句\r\n");
+			LogWrite(INFO, "%s", "Execute an SQL Select statement");
 			smb.message =  Procedure_SQL_Select(json_object);
 			if (smb.message != NULL)
 			{
@@ -547,7 +555,8 @@ static int Check_Cmd(JSON_Object * json_object)
 		else if (strcmp(cmd, "SQL_Updata") == 0)//执行sql 增删改语句，此处Updata不是指sql语句updata，而是更新的意思，更新是指增删改
 		{
 
-			printf("执行一条sql 更新语句\r\n");
+			//printf("执行一条sql 更新语句\r\n");
+			LogWrite(INFO, "%s", "Execute an SQL Up Data statement");
 			smb.message = Procedure_SQL_Updata(json_object);
 			if (smb.message != NULL)
 			{

@@ -24,7 +24,6 @@ int main()
 	_beginthread(ReceiveCharT, 0, &hCom_Tem);
 	LogWrite(INFO, "%s", "Board Com Data Parse thread Start!");
 	_beginthread(Parse_Usart_Data_Run, 0, NULL);
-	LogWrite(INFO, "%s", "Board Com Data Parse thread Start!");
 	LogWrite(INFO, "%s", "Check Board State Start!");
 	Board_Ready();
 

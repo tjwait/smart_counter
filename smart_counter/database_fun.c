@@ -647,10 +647,14 @@ INT64 SQL_INSERT_INTO_ItemsTable(char * item_id, char * barcode, char * board_id
 */
 INT64 SQL_INSERT_INTO_Up_Message(char * msn , char * message , time_t timep)
 {
-	unsigned char buf[200] = { 0 };
+	char * query_sql = (char *)malloc(strlen(message) + 200);
+	memset(query_sql, 0, strlen(message) + 200);
+	char * buf = (char *)malloc(strlen(message) + 200);
+	memset(buf, 0, strlen(message) + 200);
 	//mysql函数，在使用函数的位置不需要增加 '' 标号
-	snprintf(buf, 200, "FROM_UNIXTIME(%d)", timep);
-	char  query_sql[1024] = "insert into smart_sales_counter.up_message ( msn , message , date ) values ( '";
+	sprintf(buf,"FROM_UNIXTIME(%d)", timep);
+	//char  query_sql[1024] = "insert into smart_sales_counter.up_message ( msn , message , date ) values ( '";
+	strcat(query_sql, "insert into smart_sales_counter.up_message ( msn , message , date ) values ( '");
 	strcat(query_sql, msn);
 	strcat(query_sql, "' , '");
 	strcat(query_sql, message);
@@ -659,8 +663,11 @@ INT64 SQL_INSERT_INTO_Up_Message(char * msn , char * message , time_t timep)
 	//strcat(query_sql, ctime(&timep));
 	strcat(query_sql, buf);
 	strcat(query_sql, " ) ");
+	//由于执行的结构可能会有中文，因此此处将insert 语句统一转为GBK编码
+	memset(buf, 0, strlen(message) + 200);
+	UTF8ToGBK(query_sql, buf, strlen(message) + 200);
 
-	if (mysql_query(mysql, query_sql))//若成功mysql_query函数返回0
+	if (mysql_query(mysql, buf))//若成功mysql_query函数返回0
 	{
 		finish_with_error(mysql);
 	}
@@ -670,6 +677,8 @@ INT64 SQL_INSERT_INTO_Up_Message(char * msn , char * message , time_t timep)
 		//{
 		//	return -1;
 		//}
+	free(query_sql);
+	free(buf);
 	return res;
 
 }
@@ -897,18 +906,18 @@ char * Get_up_message_message(char * tablename, char * condition_name, char * co
 char * Procedure_SQL_Select(JSON_Object * json_object)
 {
 	
-	JSON_Value *root_value = json_value_init_object();//初始化了一个value，其类型为object，value为json数据的一个类型，不同的value类型可以嵌套
-	JSON_Object *root_object = json_value_get_object(root_value);//获取value中的object的地址
+	//JSON_Value *root_value = json_value_init_object();//初始化了一个value，其类型为object，value为json数据的一个类型，不同的value类型可以嵌套
+	//JSON_Object *root_object = json_value_get_object(root_value);//获取value中的object的地址
 
 	JSON_Value *sub_value = json_value_init_array();
 	JSON_Array *sub_array = json_value_get_array(sub_value);
 
-	time_t timep;
-	time(&timep);
-	json_object_set_string(root_object, "devid", counter->sn);
-	json_object_set_string(root_object, "cmdid", "SQL_Select");
-	json_object_dotset_string(root_object, "Result.Res", "0");//该命令总是成功
-	json_object_dotset_string(root_object, "Result.Date", ctime(&timep));
+	//time_t timep;
+	//time(&timep);
+	//json_object_set_string(root_object, "devid", counter->sn);
+	//json_object_set_string(root_object, "cmdid", "SQL_Select");
+	//json_object_dotset_string(root_object, "Result.Res", "0");//该命令总是成功
+	//json_object_dotset_string(root_object, "Result.Date", ctime(&timep));
 
 	char * sqlstr = json_object_get_string(json_object, "SqlStr");
 	if (sqlstr != NULL)
@@ -917,7 +926,7 @@ char * Procedure_SQL_Select(JSON_Object * json_object)
 		//考虑执行的sql语句可能有中文，因此统一转换成为gbk码再执行
 		unsigned char sql_gbk[500] = { 0 };
 		UTF8ToGBK(sqlstr, sql_gbk, 500);
-
+		LogWrite(INFO, "%s", sql_gbk);
 		if (mysql_query(mysql, sql_gbk))
 		{
 			finish_with_error(mysql);
@@ -968,16 +977,18 @@ char * Procedure_SQL_Select(JSON_Object * json_object)
 
 		}
 
-		json_object_dotset_value(root_object, "Result.Data", sub_value);
+		return Procedure_Answer_Message(json_object_get_string(json_object, "MSN"), "SQL_Select", 0, sub_value);//这个函数不可能失败，因此res固定为0
+
+		//json_object_dotset_value(root_object, "Result.Data", sub_value);
 		//将json字符序列化处理，并深拷贝至一个字符串中，函数返回该字符串，
-		char * json_string = (char *)malloc(json_serialization_size(root_value));//json_serialization_size这个函数的返回值已经考虑了将原字符串长度进行扩展，因为还要增加一些额外的字符，如换行、反斜杠、大括号等
-		json_serialize_to_buffer(root_value, json_string, json_serialization_size(root_value));
+		//char * json_string = (char *)malloc(json_serialization_size(root_value));//json_serialization_size这个函数的返回值已经考虑了将原字符串长度进行扩展，因为还要增加一些额外的字符，如换行、反斜杠、大括号等
+		//json_serialize_to_buffer(root_value, json_string, json_serialization_size(root_value));
 		//释放json资源
-		json_value_free(root_value);//只需释放根资源，其内部关联的所有资源会被递归释放
+		//json_value_free(root_value);//只需释放根资源，其内部关联的所有资源会被递归释放
 
-		mysql_free_result(result);//释放结果资源
+		//mysql_free_result(result);//释放结果资源
 
-		return json_string;//改指针会随着函数跳出而失效，但指向的该内存必须在外部显式释放
+		//return json_string;//改指针会随着函数跳出而失效，但指向的该内存必须在外部显式释放
 
 
 
@@ -995,15 +1006,18 @@ char * Procedure_SQL_Select(JSON_Object * json_object)
 char * Procedure_SQL_Updata(JSON_Object * json_object)
 {
 
-	JSON_Value *root_value = json_value_init_object();//初始化了一个value，其类型为object，value为json数据的一个类型，不同的value类型可以嵌套
-	JSON_Object *root_object = json_value_get_object(root_value);//获取value中的object的地址
+	//JSON_Value *root_value = json_value_init_object();//初始化了一个value，其类型为object，value为json数据的一个类型，不同的value类型可以嵌套
+	//JSON_Object *root_object = json_value_get_object(root_value);//获取value中的object的地址
 
-	time_t timep;
-	time(&timep);
-	json_object_set_string(root_object, "devid", counter->sn);
-	json_object_set_string(root_object, "cmdid", "SQL_Updata");
-	json_object_dotset_string(root_object, "Result.Res", "0");//该命令总是成功,即命令只要拼写没有错误就一定执行成功，但是该命令的结果不一定成功，
-	json_object_dotset_string(root_object, "Result.Date", ctime(&timep));
+	JSON_Value *sub_value = json_value_init_array();
+	JSON_Array *sub_array = json_value_get_array(sub_value);
+
+	//time_t timep;
+	//time(&timep);
+	//json_object_set_string(root_object, "devid", counter->sn);
+	//json_object_set_string(root_object, "cmdid", "SQL_Updata");
+	//json_object_dotset_string(root_object, "Result.Res", "0");//该命令总是成功,即命令只要拼写没有错误就一定执行成功，但是该命令的结果不一定成功，
+	//json_object_dotset_string(root_object, "Result.Date", ctime(&timep));
 
 	char * sqlstr = json_object_get_string(json_object, "SqlStr");
 	if (sqlstr != NULL)
@@ -1011,7 +1025,7 @@ char * Procedure_SQL_Updata(JSON_Object * json_object)
 		//考虑执行的sql语句可能有中文，因此统一转换成为gbk码再执行
 		unsigned char sql_gbk[500] = { 0 };
 		UTF8ToGBK(sqlstr, sql_gbk, 500);
-
+		LogWrite(INFO, "%s", sql_gbk);
 		if (mysql_query(mysql, sql_gbk))
 		{
 			finish_with_error(mysql);
@@ -1021,16 +1035,17 @@ char * Procedure_SQL_Updata(JSON_Object * json_object)
 
 		unsigned char num_buf[100] = { 0 };
 		Int_To_CharArray(affected_rows_num, num_buf);//注意这个转关若更新受影响的结果比较多，大于int能表达的上限，此处可能会有问题
+		json_array_append_string(sub_array, num_buf);
+		return Procedure_Answer_Message(json_object_get_string(json_object, "MSN"), "SQL_Updata", 0, sub_value);//这个函数不可能失败，因此res固定为0
 
-		json_object_dotset_string(root_object, "Result.AffRows", num_buf);
+		//json_object_dotset_string(root_object, "Result.AffRows", num_buf);
 		//将json字符序列化处理，并深拷贝至一个字符串中，函数返回该字符串，
-		char * json_string = (char *)malloc(json_serialization_size(root_value));//json_serialization_size这个函数的返回值已经考虑了将原字符串长度进行扩展，因为还要增加一些额外的字符，如换行、反斜杠、大括号等
-		json_serialize_to_buffer(root_value, json_string, json_serialization_size(root_value));
+		//char * json_string = (char *)malloc(json_serialization_size(root_value));//json_serialization_size这个函数的返回值已经考虑了将原字符串长度进行扩展，因为还要增加一些额外的字符，如换行、反斜杠、大括号等
+		//json_serialize_to_buffer(root_value, json_string, json_serialization_size(root_value));
 		//释放json资源
-		json_value_free(root_value);//只需释放根资源，其内部关联的所有资源会被递归释放
+		//json_value_free(root_value);//只需释放根资源，其内部关联的所有资源会被递归释放
 
-		return json_string;//改指针会随着函数跳出而失效，但指向的该内存必须在外部显式释放
-
+		//return json_string;//改指针会随着函数跳出而失效，但指向的该内存必须在外部显式释放
 
 	}
 
