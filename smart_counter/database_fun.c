@@ -882,9 +882,10 @@ char * Get_up_message_message(char * tablename, char * condition_name, char * co
 			return NULL;
 		}
 		MYSQL_ROW row = mysql_fetch_row(result);//不论查询到了多少行记录，只将第一个记录返回
-		char * message_buf = (char *)malloc(sizeof(char) * 200);
-		memset(message_buf, 0, sizeof(char) * 200);
-		strcpy(message_buf, row[2]);//获取message数据
+		unsigned char * message_buf = (char *)malloc(strlen(row[2])+200);
+		memset(message_buf, 0, strlen(row[2]) + 200);
+		GBKToUTF8((unsigned char * )row[2], message_buf, strlen(row[2]) + 200);
+		//strcpy(message_buf, row[2]);//获取message数据
 		mysql_free_result(result);//释放结果资源
 
 		return message_buf;
